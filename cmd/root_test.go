@@ -127,3 +127,14 @@ func TestRoot_FlagValidation_VerboseAndQuiet(t *testing.T) {
 		t.Errorf("error should mention mutually exclusive; got %q", err.Error())
 	}
 }
+
+func TestRoot_FlagInheritance_DryRunSetInRuntime(t *testing.T) {
+	t.Parallel()
+	_, _, rt, err := runRoot(t, "--dry-run", "doctor")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !rt.DryRun {
+		t.Error("--dry-run did not propagate into rt.DryRun")
+	}
+}

@@ -8,6 +8,6 @@
 package main
 
 import (
-	_ "github.com/urfave/cli/v3"
+	// urfave/cli/v3 is now imported from real code in cmd/; entry removed.
 	_ "gopkg.in/yaml.v3"
 )

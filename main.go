@@ -1,8 +1,16 @@
 // Package main is the entry point for the macheim CLI.
 package main
 
-// Build-time identity, populated via -ldflags. Sub-issue #5 wires these into
-// the urfave/cli/v3 root command's --version flag.
+import (
+	"context"
+	"fmt"
+	"os"
+
+	"github.com/polliard/macheim/cmd"
+	"github.com/polliard/macheim/internal/config"
+)
+
+// Build-time identity, populated via -ldflags from the Makefile.
 var (
 	version   = "dev"
 	commit    = "unknown"
@@ -10,8 +18,14 @@ var (
 )
 
 func main() {
-	// Command tree lands in sub-issue #5.
-	_ = version
-	_ = commit
-	_ = buildDate
+	rt := &config.Runtime{
+		Version:   version,
+		Commit:    commit,
+		BuildDate: buildDate,
+	}
+	root := cmd.NewRoot(rt)
+	if err := root.Run(context.Background(), os.Args); err != nil {
+		fmt.Fprintln(os.Stderr, "macheim:", err)
+		os.Exit(1)
+	}
 }
