@@ -29,13 +29,17 @@ build: embed-sync      ## Build the macheim binary to dist/
 
 # embed-sync is repo -> embedded only. It never copies from embedded
 # back to the repo. Sources (Brewfile, dotfiles/) arrive in sub-issue #21;
-# until they exist this target is a no-op by design.
-embed-sync:            ## Sync repo Brewfile/dotfiles into the embedded fallback (no-op if absent)
+# until they exist this target is a no-op by design. Idempotent: a
+# second invocation with no source changes produces no on-disk diff
+# (cmp -s short-circuits Brewfile; rsync -a skips files already up to
+# date and --delete keeps the dotfiles tree in exact lockstep).
+embed-sync:            ## Sync repo Brewfile/dotfiles into the embedded fallback (idempotent; no-op if absent)
 	@mkdir -p internal/embedded/scripts internal/embedded/configs
-	@if [ -f Brewfile ]; then cp Brewfile internal/embedded/configs/Brewfile; fi
+	@if [ -f Brewfile ]; then \
+	  cmp -s Brewfile internal/embedded/configs/Brewfile || cp Brewfile internal/embedded/configs/Brewfile; \
+	fi
 	@if [ -d dotfiles ]; then \
-	  rm -rf internal/embedded/configs/dotfiles && \
-	  cp -R dotfiles internal/embedded/configs/dotfiles; \
+	  rsync -a --delete dotfiles/ internal/embedded/configs/dotfiles/; \
 	fi
 
 install: build         ## Install to $(INSTALL_PREFIX)/bin
