@@ -1,9 +1,18 @@
-# Design — Project foundation (sub-issue #4)
+# Design — Project foundation (sub-epic #4)
 
-**Tracks:** [Epic #3](https://github.com/polliard/macheim/issues/3) → sub-issue [#4](https://github.com/polliard/macheim/issues/4)
+**Tracks:** [Index #3](https://github.com/polliard/macheim/issues/3) → [Epic #25 Foundation](https://github.com/polliard/macheim/issues/25) → sub-epic [#4](https://github.com/polliard/macheim/issues/4) → leaves [#30](https://github.com/polliard/macheim/issues/30) [#31](https://github.com/polliard/macheim/issues/31) [#32](https://github.com/polliard/macheim/issues/32) [#33](https://github.com/polliard/macheim/issues/33) [#34](https://github.com/polliard/macheim/issues/34)
 **Status:** Draft — awaiting user review
 **Date:** 2026-05-20
 **Author:** Thomas Polliard (with Claude Opus 4.7)
+
+**Leaf mapping:**
+| Spec section | Leaf issue |
+|---|---|
+| §3 (Go module + tools.go) + §10 (tools.go) | [#30](https://github.com/polliard/macheim/issues/30) Go module + dependency pinning |
+| §5 (Makefile) + §7 (.gitignore) + §8 (.editorconfig) | [#31](https://github.com/polliard/macheim/issues/31) Makefile (build/embed-sync/install/test/lint/tidy/clean/help) |
+| §6 (golangci.yml) | [#32](https://github.com/polliard/macheim/issues/32) golangci-lint baseline |
+| §11 (LICENSE + NOTICE) | [#33](https://github.com/polliard/macheim/issues/33) LICENSE + NOTICE (Apache-2.0) |
+| §4 (Layout) + §9 (main.go) + §12 (README) | [#34](https://github.com/polliard/macheim/issues/34) Directory skeleton + main.go + .gitignore + .editorconfig + README placeholder |
 
 ---
 
