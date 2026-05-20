@@ -110,7 +110,12 @@ func TestStub_ZshSetup(t *testing.T) {
 
 func TestRoot_FlagValidation_VerboseAndQuiet(t *testing.T) {
 	t.Parallel()
-	_, _, _, err := runRoot(t, "--verbose", "--quiet", "doctor")
+	// Use a stub subcommand (bootstrap) rather than doctor: doctor's real checks
+	// invoke cli.Exit("", 1) on failure, which terminates the test process via
+	// the framework's default OsExiter. On Linux CI, doctor's xcode/brew probes
+	// fail and the whole package's tests collateral-die. Stub commands print
+	// and return nil — Before still fires, validation error still surfaces.
+	_, _, _, err := runRoot(t, "--verbose", "--quiet", "bootstrap")
 	if err == nil {
 		t.Fatal("expected error for --verbose --quiet together, got nil")
 	}
@@ -121,7 +126,9 @@ func TestRoot_FlagValidation_VerboseAndQuiet(t *testing.T) {
 
 func TestRoot_FlagInheritance_DryRunSetInRuntime(t *testing.T) {
 	t.Parallel()
-	_, _, rt, err := runRoot(t, "--dry-run", "doctor")
+	// See TestRoot_FlagValidation_VerboseAndQuiet for why bootstrap (a stub) is
+	// used instead of doctor.
+	_, _, rt, err := runRoot(t, "--dry-run", "bootstrap")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
