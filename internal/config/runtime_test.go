@@ -37,6 +37,41 @@ func TestRuntime_Validate(t *testing.T) {
 	}
 }
 
+func TestRuntime_ResolveRepoPath(t *testing.T) {
+	tests := []struct {
+		name       string
+		repoFlag   string
+		envValue   string
+		wantPath   string
+		wantSource string
+	}{
+		{name: "nothing set", repoFlag: "", envValue: "", wantPath: "", wantSource: ""},
+		{name: "only flag", repoFlag: "/r", envValue: "", wantPath: "/r", wantSource: "flag"},
+		{name: "only env", repoFlag: "", envValue: "/e", wantPath: "/e", wantSource: "env"},
+		{name: "both — flag wins", repoFlag: "/r", envValue: "/e", wantPath: "/r", wantSource: "flag"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			// t.Setenv handles save/restore automatically and is safe across
+			// parallel tests in different test funcs, but tests within this
+			// func share env state. Don't t.Parallel() these subtests.
+			t.Setenv("MACHEIM_REPO", tc.envValue)
+			rt := &Runtime{RepoPath: tc.repoFlag}
+			gotPath, gotSource, err := rt.ResolveRepoPath()
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if gotPath != tc.wantPath {
+				t.Errorf("path: got %q, want %q", gotPath, tc.wantPath)
+			}
+			if gotSource != tc.wantSource {
+				t.Errorf("source: got %q, want %q", gotSource, tc.wantSource)
+			}
+		})
+	}
+}
+
 func TestRuntime_VersionString(t *testing.T) {
 	t.Parallel()
 
