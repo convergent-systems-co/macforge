@@ -67,18 +67,20 @@ func DefaultChecks() []Check {
 	}
 }
 
-// Run executes every check in order, accumulates failures, and returns
-// nil on all-pass or a cli.ExitCoder with exit code 1 on any failure.
-// Rendering is added in a follow-up commit; the writer is accepted here
-// to keep the public signature stable but is unused for now.
+// Run executes every check in order, renders each row, prints a summary,
+// and returns nil on all-pass or a cli.ExitCoder with exit code 1 when
+// any check fails.
 func Run(rt *config.Runtime, w io.Writer) error {
-	_ = w // render lands in render.go in the next commit
+	r := newRender(rt, w)
 	failed := 0
 	for _, c := range DefaultChecks() {
-		if !c.Run(rt).OK {
+		res := c.Run(rt)
+		r.row(c.Name, res)
+		if !res.OK {
 			failed++
 		}
 	}
+	r.summary(failed)
 	if failed > 0 {
 		return cli.Exit("", 1)
 	}
