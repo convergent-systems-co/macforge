@@ -7,6 +7,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"os"
 )
 
 // Runtime captures the inherited global flags and the build-time identity.
@@ -42,4 +43,29 @@ func (r *Runtime) Validate() error {
 // VersionString formats the build identity for --version output.
 func (r *Runtime) VersionString() string {
 	return fmt.Sprintf("%s (commit %s, built %s)", r.Version, r.Commit, r.BuildDate)
+}
+
+// ResolveRepoPath returns the configured macheim repo path and the source
+// that produced it ("flag" or "env"), or ("", "", nil) when no source is
+// configured (the embed-fallback case from GOALS.md).
+//
+// Sub-issue #6 expands this to cover the remaining steps of the 5-step
+// discovery chain: ~/.config/macheim/config.yaml, conventional paths
+// (~/src/macheim, ~/code/macheim), and embed-fallback formalization. The
+// signature is stable across that expansion — callers (e.g. doctor) do not
+// change when #6 lands.
+//
+// rt.RepoPath already incorporates the cli.EnvVars("MACHEIM_REPO") value
+// source set up in cmd/root.go, so in practice the os.Getenv fallback below
+// is reached only when both the flag and cli's source chain miss the env.
+// Defensive — keeps the resolver self-contained for tests that don't go
+// through the cli flag-parsing path.
+func (r *Runtime) ResolveRepoPath() (path, source string, err error) {
+	if r.RepoPath != "" {
+		return r.RepoPath, "flag", nil
+	}
+	if v := os.Getenv("MACHEIM_REPO"); v != "" {
+		return v, "env", nil
+	}
+	return "", "", nil
 }

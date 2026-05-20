@@ -69,17 +69,8 @@ func TestRoot_HelpListsEveryCommand(t *testing.T) {
 	}
 }
 
-func TestStub_Doctor(t *testing.T) {
-	t.Parallel()
-	stdout, _, _, err := runRoot(t, "doctor")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	want := "doctor: not implemented yet (see issue #10)\n"
-	if stdout != want {
-		t.Errorf("stdout:\n  got:  %q\n  want: %q", stdout, want)
-	}
-}
+// doctor is no longer a stub; integration coverage moved to doctor_test.go
+// (TestDoctor_RunsAndProducesSummary).
 
 func TestStub_BrewBundle(t *testing.T) {
 	t.Parallel()
