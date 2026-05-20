@@ -1,0 +1,26 @@
+package cmd
+
+import (
+	"github.com/polliard/macheim/internal/config"
+	"github.com/urfave/cli/v3"
+)
+
+func brewCommand(rt *config.Runtime) *cli.Command {
+	_ = rt
+	return &cli.Command{
+		Name:  "brew",
+		Usage: "Homebrew operations",
+		Commands: []*cli.Command{
+			{
+				Name:   "install",
+				Usage:  "Install Homebrew itself",
+				Action: notImplemented("brew install", 12),
+			},
+			{
+				Name:   "bundle",
+				Usage:  "Apply the repo Brewfile",
+				Action: notImplemented("brew bundle", 13),
+			},
+		},
+	}
+}

@@ -3,10 +3,37 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/polliard/macheim/internal/config"
 	"github.com/urfave/cli/v3"
 )
+
+// init drops the "-v" alias from urfave/cli/v3's built-in --version flag.
+// GOALS.md gives --verbose the "-v" short alias; the framework's default
+// --version flag also claims "-v", and the parser collision silently routes
+// "--verbose" into version-print mode. Rebinding here once (idempotent)
+// frees "-v" for --verbose. --version long-form still works.
+func init() {
+	if vf, ok := cli.VersionFlag.(*cli.BoolFlag); ok {
+		vf.Aliases = nil
+	}
+}
+
+// notImplemented is the stub body every unimplemented subcommand uses. It
+// prints the canonical "see issue #N" line and exits 0. The name argument
+// is the fully-qualified command path (e.g. "brew bundle"); issue is the
+// GitHub issue number that owns the real implementation.
+//
+// Writes to cmd.Root().Writer (not cmd.Writer) because urfave/cli/v3 defaults
+// a subcommand's Writer to os.Stdout independently of the root, so test
+// capture via root.Writer would otherwise be invisible from a subcommand.
+func notImplemented(name string, issue int) cli.ActionFunc {
+	return func(ctx context.Context, cmd *cli.Command) error {
+		_, _ = fmt.Fprintf(cmd.Root().Writer, "%s: not implemented yet (see issue #%d)\n", name, issue)
+		return nil
+	}
+}
 
 // NewRoot returns the root *cli.Command. The caller passes a *config.Runtime;
 // the Before hook populates it from parsed flags. Subcommands hold the same
@@ -41,6 +68,16 @@ func NewRoot(rt *config.Runtime) *cli.Command {
 			}
 			return ctx, nil
 		},
-		Commands: []*cli.Command{},
+		Commands: []*cli.Command{
+			bootstrapCommand(rt),
+			brewCommand(rt),
+			zshCommand(rt),
+			dotfilesCommand(rt),
+			macosCommand(rt),
+			downloadsCommand(rt),
+			updateCommand(rt),
+			statusCommand(rt),
+			doctorCommand(rt),
+		},
 	}
 }

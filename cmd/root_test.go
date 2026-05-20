@@ -53,6 +53,77 @@ func TestRoot_VersionShowsBuildIdentity(t *testing.T) {
 	}
 }
 
-// Flag-validation integration (--verbose with --quiet returning an error
-// from Before) requires a subcommand to actually invoke Before; that test
-// lands in the commit that registers the doctor stub.
+func TestRoot_HelpListsEveryCommand(t *testing.T) {
+	t.Parallel()
+	stdout, _, _, err := runRoot(t, "--help")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, want := range []string{
+		"bootstrap", "brew", "zsh", "dotfiles", "macos",
+		"downloads", "update", "status", "doctor",
+	} {
+		if !strings.Contains(stdout, want) {
+			t.Errorf("help missing command %q\nfull:\n%s", want, stdout)
+		}
+	}
+}
+
+func TestStub_Doctor(t *testing.T) {
+	t.Parallel()
+	stdout, _, _, err := runRoot(t, "doctor")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	want := "doctor: not implemented yet (see issue #10)\n"
+	if stdout != want {
+		t.Errorf("stdout:\n  got:  %q\n  want: %q", stdout, want)
+	}
+}
+
+func TestStub_BrewBundle(t *testing.T) {
+	t.Parallel()
+	stdout, _, _, err := runRoot(t, "brew", "bundle")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	want := "brew bundle: not implemented yet (see issue #13)\n"
+	if stdout != want {
+		t.Errorf("stdout:\n  got:  %q\n  want: %q", stdout, want)
+	}
+}
+
+func TestStub_UpdateLocalToRemote(t *testing.T) {
+	t.Parallel()
+	stdout, _, _, err := runRoot(t, "update", "local-to-remote")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	want := "update local-to-remote: not implemented yet (see issue #15)\n"
+	if stdout != want {
+		t.Errorf("stdout:\n  got:  %q\n  want: %q", stdout, want)
+	}
+}
+
+func TestStub_ZshSetup(t *testing.T) {
+	t.Parallel()
+	stdout, _, _, err := runRoot(t, "zsh", "setup")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	want := "zsh setup: not implemented yet (see issue #20)\n"
+	if stdout != want {
+		t.Errorf("stdout:\n  got:  %q\n  want: %q", stdout, want)
+	}
+}
+
+func TestRoot_FlagValidation_VerboseAndQuiet(t *testing.T) {
+	t.Parallel()
+	_, _, _, err := runRoot(t, "--verbose", "--quiet", "doctor")
+	if err == nil {
+		t.Fatal("expected error for --verbose --quiet together, got nil")
+	}
+	if !strings.Contains(err.Error(), "mutually exclusive") {
+		t.Errorf("error should mention mutually exclusive; got %q", err.Error())
+	}
+}
