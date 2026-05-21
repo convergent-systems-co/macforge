@@ -8,11 +8,16 @@ SemVer.
 
 ### Added
 
+- **`macforge workstation <verb>`** — Mac workstation bootstrap and sync: Homebrew, dotfiles, zsh, macOS defaults. Originated as `github.com/polliard/macheim`; subtree-merged on 2026-05-21 preserving 73 commits of upstream history. Functional verbs: `status`, `doctor`, `brew install`, `brew bundle`, `dotfiles apply`, `update local-to-remote` (brew + dotfiles), `update remote-to-local` (brew only; dotfiles t.b.d.). Stubs: `bootstrap`, `zsh setup`, `macos defaults`, `downloads`. See [ADR-0017](docs/adr/0017-apple-command-namespace.md), [ADR-0018](docs/adr/0018-peer-subtree-named-workstation.md), and the design spec at [`docs/superpowers/specs/2026-05-21-workstation-merge-design.md`](docs/superpowers/specs/2026-05-21-workstation-merge-design.md).
 - **`macforge apple config validate`** — runs every static rule `config.Load` enforces plus runtime checks (env-var presence for `keychain.unlock`, keychain file reachability via `security show-keychain-info`). Per-rule `✓` / `✗` / `○` output; exits non-zero on any red. JSON envelope schema `macforge.v1.apple.config.validate`. See [ADR-0019](docs/adr/0019-aggressive-config-validation.md). ([#13](https://github.com/convergent-systems-co/macforge/issues/13))
 - **`config.ResolveKeychainName(cfg)`** — single resolver every Apple verb consumes for the keychain name. Returns `cfg.Keychain.Name` if set, else `keychain.DefaultName(cfg.Team, "signing")`. Replaces direct `cfg.Keychain.Name` reads in signing. ([#13](https://github.com/convergent-systems-co/macforge/issues/13))
 - **`macforge identity create`** — generate an RSA-2048 keypair + PKCS#10 CSR for the Apple Developer ID portal, AND bundle the private key in an encrypted PKCS#12 backup, AND import the key into the configured macforge keychain. The private key never touches disk unencrypted. Flags: `--cn` (required), `--org`, `--email`, `--country`, `--out` (path prefix; default `./identity` → `./identity.csr` + `./identity.p12`), `--password` (optional; generated if omitted and shown once on stdout), `--keychain`. Promotes the stub from v0.2 — closes the v0.1 gap where users were told to import a Developer ID cert but the tool couldn't help them generate the CSR to get one.
 - **`macforge identity rotate`** — archive the current keychain identities to an encrypted PKCS#12, then generate a fresh RSA-2048 key + CSR (like `create`). Both old and new keys remain in the keychain afterward (Apple allows multiple valid Developer ID certs per team). Same flags as `create` plus `--archive-out` (default `./identity-archive-<UTC>.p12`), `--archive-password`, `--no-archive`.
 - **`macforge identity export`** — write all identities from the configured keychain to an AES-encrypted PKCS#12 backup via `security export`. Flags: `--keychain`, `--out`, `--password`. Output file is `chmod 0600`. Useful for password-manager backups and seeding CI runners.
+
+### Removed
+
+- **`github.com/urfave/cli/v3`** from the module graph — workstation port to cobra replaced all `cli.Exit` calls; `internal/workstation/doctor/doctor.go` now returns a sentinel `ErrChecksFailed` to cobra instead.
 
 ### Fixed
 

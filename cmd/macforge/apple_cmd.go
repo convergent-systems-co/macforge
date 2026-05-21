@@ -17,9 +17,9 @@ func newAppleCmd() *cobra.Command {
 signing, verification, packaging, notarization, and publication of macOS
 software distributed outside the App Store.
 
-This subtree contains everything MacForge does today. A future peer
-subtree ` + "`macforge macheim`" + ` will hold the macheim-platform operations
-once that project merges in.`,
+This subtree contains everything MacForge does today. The peer subtree
+` + "`macforge workstation`" + ` holds Mac workstation operations (Homebrew,
+dotfiles, zsh, macOS defaults).`,
 	}
 	cmd.AddCommand(
 		newInitCmd(),

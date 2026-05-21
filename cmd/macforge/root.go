@@ -41,11 +41,13 @@ and publishing for macOS software distributed outside the App Store.`,
 	pflags.BoolVarP(&gflags.verbose, "verbose", "v", false, "shortcut for --log-level=debug")
 
 	// All Apple-platform release operations live under `macforge apple <verb>`.
-	// `version` stays at the root (universal). When macheim merges, its verbs
-	// will land at `macforge macheim <verb>` as a peer to `apple`. See
-	// docs/adr/0017-apple-command-namespace.md.
+	// `version` stays at the root (universal). Workstation operations (Homebrew,
+	// dotfiles, zsh, macOS defaults) live under `macforge workstation <verb>` as
+	// a peer. See docs/adr/0017-apple-command-namespace.md (namespace pattern)
+	// and docs/adr/0018-peer-subtree-named-workstation.md (peer-name decision).
 	root.AddCommand(
 		newAppleCmd(),
+		newWorkstationCmd(),
 		newVersionCmd(),
 	)
 
