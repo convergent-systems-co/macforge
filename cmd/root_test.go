@@ -72,17 +72,8 @@ func TestRoot_HelpListsEveryCommand(t *testing.T) {
 // doctor is no longer a stub; integration coverage moved to doctor_test.go
 // (TestDoctor_RunsAndProducesSummary).
 
-func TestStub_BrewBundle(t *testing.T) {
-	t.Parallel()
-	stdout, _, _, err := runRoot(t, "brew", "bundle")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	want := "brew bundle: not implemented yet (see issue #13)\n"
-	if stdout != want {
-		t.Errorf("stdout:\n  got:  %q\n  want: %q", stdout, want)
-	}
-}
+// brew bundle is no longer a stub; integration coverage lives in
+// internal/brew/bundle_test.go (Apply + summarize).
 
 func TestStub_UpdateLocalToRemote(t *testing.T) {
 	t.Parallel()
