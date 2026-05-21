@@ -4,6 +4,7 @@
 package security
 
 import (
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -101,8 +102,9 @@ func TestKeychainPath_AddsSuffix(t *testing.T) {
 	if err != nil {
 		t.Fatalf("keychainPath: %v", err)
 	}
-	if !strings.HasSuffix(got, "/Library/Keychains/macforge-XYZ-signing.keychain-db") {
-		t.Fatalf("got %q, want suffix /Library/Keychains/macforge-XYZ-signing.keychain-db", got)
+	wantSuffix := filepath.Join("Library", "Keychains", "macforge-XYZ-signing.keychain-db")
+	if !strings.HasSuffix(got, wantSuffix) {
+		t.Fatalf("got %q, want suffix %q", got, wantSuffix)
 	}
 }
 
@@ -111,8 +113,9 @@ func TestKeychainPath_PreservesExplicitSuffix(t *testing.T) {
 	if err != nil {
 		t.Fatalf("keychainPath: %v", err)
 	}
-	if !strings.HasSuffix(got, "/Library/Keychains/macforge-XYZ-signing.keychain-db") {
-		t.Fatalf("got %q, want path ending in single .keychain-db suffix", got)
+	wantSuffix := filepath.Join("Library", "Keychains", "macforge-XYZ-signing.keychain-db")
+	if !strings.HasSuffix(got, wantSuffix) {
+		t.Fatalf("got %q, want path ending in %q", got, wantSuffix)
 	}
 	if strings.Contains(got, ".keychain-db.keychain-db") {
 		t.Fatalf("got %q: suffix was doubled", got)

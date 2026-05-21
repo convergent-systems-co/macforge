@@ -1,6 +1,10 @@
 run:
   timeout: 5m
-  go: "1.26"
+  # golangci-lint v1.64.8 (pinned by the action) is built against Go 1.24
+  # and refuses to load a config targeting a newer language version. The
+  # actual build toolchain stays at 1.26.3 (see .go-version); only the
+  # set of language features lint accepts is capped here.
+  go: "1.24"
 
 linters:
   enable:

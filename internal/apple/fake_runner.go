@@ -60,11 +60,14 @@ func NewFakeRunner(root string) (*FakeRunner, error) {
 		exitStr, _ := os.ReadFile(filepath.Join(dir, "exit"))
 		exit, _ := strconv.Atoi(strings.TrimSpace(string(exitStr)))
 
+		// Normalize CRLF → LF on read. Fixture files SHOULD be LF-only via
+		// .gitattributes, but defending against git autocrlf misconfiguration
+		// on Windows clones keeps tests platform-portable.
 		r.fixtures = append(r.fixtures, fixture{
 			tool:   spec.Tool,
 			args:   spec.Args,
-			stdout: stdout,
-			stderr: stderr,
+			stdout: normalizeLF(stdout),
+			stderr: normalizeLF(stderr),
 			exit:   exit,
 		})
 		return nil
@@ -73,6 +76,23 @@ func NewFakeRunner(root string) (*FakeRunner, error) {
 		return nil, err
 	}
 	return r, nil
+}
+
+// normalizeLF converts CRLF to LF in fixture bodies so tests behave the
+// same whether the fixture was checked out on a Unix-y system or a Windows
+// box with autocrlf enabled.
+func normalizeLF(b []byte) []byte {
+	if len(b) == 0 {
+		return b
+	}
+	out := make([]byte, 0, len(b))
+	for i := 0; i < len(b); i++ {
+		if b[i] == '\r' && i+1 < len(b) && b[i+1] == '\n' {
+			continue
+		}
+		out = append(out, b[i])
+	}
+	return out
 }
 
 // Run searches loaded fixtures for an exact (tool, args) match.
