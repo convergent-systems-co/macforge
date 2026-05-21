@@ -18,13 +18,70 @@ func newIdentityCmd() *cobra.Command {
 		Short: "Manage Developer ID identities",
 	}
 	cmd.AddCommand(
-		stubSub("create", "Create a new private key + CSR in the dedicated keychain (v0.2)"),
+		newIdentityCreateCmd(),
 		newIdentityImportCmd(),
 		newIdentityListCmd(),
 		stubSub("rotate", "Rotate the certificate; archive the old (v0.2)"),
 		newIdentityStatusCmd(),
 		stubSub("export", "Encrypted export for CI consumption (v0.2)"),
 	)
+	return cmd
+}
+
+func newIdentityCreateCmd() *cobra.Command {
+	var (
+		cn, email, country string
+		org                string
+		outPrefix          string
+		p12Password        string
+		keychainName       string
+	)
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "Generate a new RSA-2048 private key + CSR; bundle key as PKCS#12 + import into the macforge keychain",
+		Long: `Generates a fresh RSA-2048 private key, writes a PKCS#10 CSR for the
+Apple Developer ID portal, and imports the same private key (with a
+self-signed placeholder cert) into the configured macforge keychain.
+
+The private key never touches disk in unencrypted form — the PKCS#12
+backup is AES-encrypted with the password from --p12-password, or with a
+fresh randomly generated password shown ONCE in the result envelope
+(save it immediately — it cannot be recovered).
+
+Upload the resulting .csr to https://developer.apple.com/account/resources/certificates
+and pick "Developer ID Application". When Apple returns the issued .cer,
+import it with: macforge identity import --file <cert.cer>`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			rt, err := newRuntime("identity.create", true)
+			if err != nil {
+				return err
+			}
+			if keychainName == "" {
+				keychainName = keychain.DefaultName(rt.cfg.Team, "signing")
+			}
+			svc := identity.New(security.New(newRunnerWithAudit(rt)))
+			result, runErr := svc.Create(cmd.Context(), identity.CreateOptions{
+				Subject: identity.CSRSubject{
+					CommonName:   cn,
+					Organization: org,
+					Email:        email,
+					Country:      country,
+				},
+				Keychain:    keychainName,
+				OutPrefix:   outPrefix,
+				P12Password: p12Password,
+			})
+			return rt.emit(identityCreateResult{Result: result}, runErr)
+		},
+	}
+	cmd.Flags().StringVar(&cn, "cn", "", "Common Name for the CSR (required)")
+	cmd.Flags().StringVar(&org, "org", "", "Organization for the CSR (optional)")
+	cmd.Flags().StringVar(&email, "email", "", "Email Address for the CSR (optional)")
+	cmd.Flags().StringVar(&country, "country", "US", "ISO 3166 two-letter country code")
+	cmd.Flags().StringVar(&outPrefix, "out", "./identity", "output path prefix; <prefix>.csr and <prefix>.p12 are written")
+	cmd.Flags().StringVar(&p12Password, "p12-password", "", "password for the .p12 backup (omit to generate a random one)")
+	cmd.Flags().StringVar(&keychainName, "keychain", "", "target keychain (default: macforge-<team>-signing)")
+	_ = cmd.MarkFlagRequired("cn")
 	return cmd
 }
 
@@ -114,6 +171,34 @@ func newIdentityStatusCmd() *cobra.Command {
 }
 
 // Result types ----------------------------------------------------------------
+
+type identityCreateResult struct {
+	Result identity.CreateResult `json:"result"`
+}
+
+func (r identityCreateResult) SchemaName() string { return "macforge.v1.identity.create" }
+func (r identityCreateResult) HumanLines() []string {
+	out := []string{
+		"CSR written:          " + r.Result.CSRPath,
+		"  (upload at https://developer.apple.com/account/resources/certificates → Developer ID Application)",
+		"PKCS#12 key backup:   " + r.Result.P12Path,
+	}
+	if r.Result.GeneratedP12Password != "" {
+		out = append(out,
+			"Generated password:   "+r.Result.GeneratedP12Password,
+			"  ⚠  SAVE THIS PASSWORD NOW — it is not stored and will not be shown again.",
+		)
+	} else {
+		out = append(out, "Password:             (provided via --p12-password)")
+	}
+	out = append(out,
+		"Keychain import:      "+r.Result.Keychain+"  (the key is bound to a self-signed placeholder",
+		"                       cert that will be ignored once you `macforge identity import` the",
+		"                       real Apple-issued .cer file)",
+		"Public key SHA-256:   "+r.Result.PublicKeyFingerprint[:32]+"…",
+	)
+	return out
+}
 
 type identityImportResult struct {
 	File     string `json:"file"`
