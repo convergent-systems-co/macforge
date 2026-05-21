@@ -117,7 +117,15 @@ func (s *Service) Create(ctx context.Context, opts CreateOptions) (CreateResult,
 		generated = pw
 	}
 
-	p12Bytes, err := pkcs12.Modern.Encode(key, filler, nil, pw)
+	// pkcs12.Legacy (= LegacyDES: 3DES + BMPString password derivation) is what
+	// macOS Security.framework's SecPKCS12Import accepts. The Modern encoder
+	// (AES-256 + UTF-8 PBKDF2) produces files security import can't decrypt —
+	// it reports "MAC verification failed" because the MAC was derived from a
+	// UTF-8 password instead of the BMPString form Apple expects. The 3DES
+	// envelope is weaker than AES-256 but the .p12 is a SECONDARY layer over
+	// the key (which also lives in the encrypted macOS keychain), and
+	// macOS-wide compatibility matters more than encoder modernness. Issue #9.
+	p12Bytes, err := pkcs12.Legacy.Encode(key, filler, nil, pw)
 	if err != nil {
 		return CreateResult{}, mferrors.NewIdentity(mferrors.CodeIdentityImportFail,
 			"identity.Create", "pkcs12 encode failed", mferrors.WithCause(err))
