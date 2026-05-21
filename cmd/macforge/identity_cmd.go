@@ -40,7 +40,7 @@ configured macforge keychain to an AES-encrypted PKCS#12 file. Wraps
 ` + "`security export`" + `. Use this to back up signing material to a password
 manager or to seed a CI runner with the same identity.
 
-If --p12-password is omitted, a fresh random password is generated and
+If --password is omitted, a fresh random password is generated and
 shown ONCE in the result envelope (save it immediately — not stored).`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			rt, err := newRuntime("identity.export", true)
@@ -61,7 +61,7 @@ shown ONCE in the result envelope (save it immediately — not stored).`,
 	}
 	cmd.Flags().StringVar(&keychainName, "keychain", "", "source keychain (default: macforge-<team>-signing)")
 	cmd.Flags().StringVar(&outPath, "out", "./identity-backup.p12", "destination .p12 path")
-	cmd.Flags().StringVar(&p12Password, "p12-password", "", "passphrase for the .p12 (omit to generate a random one)")
+	cmd.Flags().StringVar(&p12Password, "password", "", "passphrase for the .p12 (omit to generate a random one)")
 	return cmd
 }
 
@@ -124,7 +124,7 @@ manually retire the old cert (signing tools pick by name, both work).`,
 	cmd.Flags().StringVar(&email, "email", "", "Email Address for the new CSR (optional)")
 	cmd.Flags().StringVar(&country, "country", "US", "ISO 3166 two-letter country code")
 	cmd.Flags().StringVar(&outPrefix, "out", "./identity-new", "new identity output path prefix; <prefix>.csr and <prefix>.p12 are written")
-	cmd.Flags().StringVar(&p12Password, "p12-password", "", "password for the new .p12 backup (omit to generate a random one)")
+	cmd.Flags().StringVar(&p12Password, "password", "", "password for the new .p12 backup (omit to generate a random one)")
 	cmd.Flags().StringVar(&keychainName, "keychain", "", "target keychain (default: macforge-<team>-signing)")
 	cmd.Flags().StringVar(&archivePath, "archive-out", "", "archive destination path (default: ./identity-archive-<UTC>.p12)")
 	cmd.Flags().StringVar(&archivePassword, "archive-password", "", "password for the archive .p12 (omit to generate a random one)")
@@ -149,7 +149,7 @@ Apple Developer ID portal, and imports the same private key (with a
 self-signed placeholder cert) into the configured macforge keychain.
 
 The private key never touches disk in unencrypted form — the PKCS#12
-backup is AES-encrypted with the password from --p12-password, or with a
+backup is AES-encrypted with the password from --password, or with a
 fresh randomly generated password shown ONCE in the result envelope
 (save it immediately — it cannot be recovered).
 
@@ -184,7 +184,7 @@ import it with: macforge identity import --file <cert.cer>`,
 	cmd.Flags().StringVar(&email, "email", "", "Email Address for the CSR (optional)")
 	cmd.Flags().StringVar(&country, "country", "US", "ISO 3166 two-letter country code")
 	cmd.Flags().StringVar(&outPrefix, "out", "./identity", "output path prefix; <prefix>.csr and <prefix>.p12 are written")
-	cmd.Flags().StringVar(&p12Password, "p12-password", "", "password for the .p12 backup (omit to generate a random one)")
+	cmd.Flags().StringVar(&p12Password, "password", "", "password for the .p12 backup (omit to generate a random one)")
 	cmd.Flags().StringVar(&keychainName, "keychain", "", "target keychain (default: macforge-<team>-signing)")
 	_ = cmd.MarkFlagRequired("cn")
 	return cmd
@@ -229,7 +229,7 @@ func newIdentityImportCmd() *cobra.Command {
 	}
 	cmd.Flags().StringVar(&file, "file", "", "path to .cer, .pem, or .p12")
 	cmd.Flags().StringVar(&keychainName, "keychain", "", "target keychain (default: macforge-<team>-signing)")
-	cmd.Flags().StringVar(&p12Password, "p12-password", "", "password for .p12 file (omit for .cer/.pem)")
+	cmd.Flags().StringVar(&p12Password, "password", "", "password for .p12 file (omit for .cer/.pem)")
 	_ = cmd.MarkFlagRequired("file")
 	return cmd
 }
@@ -294,7 +294,7 @@ func (r identityCreateResult) HumanLines() []string {
 			"  ⚠  SAVE THIS PASSWORD NOW — it is not stored and will not be shown again.",
 		)
 	} else {
-		out = append(out, "Password:             (provided via --p12-password)")
+		out = append(out, "Password:             (provided via --password)")
 	}
 	out = append(out,
 		"Keychain import:      "+r.Result.Keychain+"  (the key is bound to a self-signed placeholder",
@@ -321,7 +321,7 @@ func (r identityExportResult) HumanLines() []string {
 			"  ⚠  SAVE THIS PASSWORD NOW — it is not stored and will not be shown again.",
 		)
 	} else {
-		out = append(out, "Password:             (provided via --p12-password)")
+		out = append(out, "Password:             (provided via --password)")
 	}
 	return out
 }
