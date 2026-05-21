@@ -50,9 +50,9 @@ load-bearing decision.
 # 1. Install
 go install github.com/convergent-systems-co/macforge/cmd/macforge@latest
 
-# 2. Scaffold project config
-cd ~/code/myapp
+# 2. Scaffold the global config (one-time, identity-shaped fields only)
 macforge init --team XYZ1234567
+# Writes ~/.config/macforge/macforge.yaml
 
 # 3. Create a dedicated keychain
 export MACFORGE_KEYCHAIN_PASSWORD=$(openssl rand -base64 24)
@@ -61,18 +61,44 @@ macforge keychain create
 # 4. Import a Developer ID certificate
 macforge identity import --file ./DeveloperID.cer
 
-# 5. Sign your build
+# 5. (Optional) Per-project overrides — only if your project needs them
+cd ~/code/myapp
+cat > macforge.yaml <<'YAML'
+sign:
+  entitlements: ./Entitlements.plist
+package:
+  formats: [zip, dmg]
+publish:
+  github:
+    repo: convergent-systems-co/myapp
+YAML
+
+# 6. Sign your build
 macforge sign ./build/MyApp.app
 
-# 6. Verify
+# 7. Verify
 macforge verify ./build/MyApp.app
 ```
 
+## Configuration layering
+
+MacForge reads config in priority order (highest first):
+
+1. CLI flag — e.g., `--team-id`, `--entitlements`, `--config <path>`
+2. Environment — `MACFORGE_*` (e.g., `MACFORGE_KEYCHAIN_PASSWORD`)
+3. `./macforge.yaml` — project-local override (optional)
+4. `~/.config/macforge/macforge.yaml` — global base (required; created by `macforge init`)
+5. Built-in defaults
+
+The global file holds identity-shaped fields (team, keychain, signing identity, ASC profile). The project-local file is optional and should carry only project-shaped fields (entitlements, package formats, publish target). See [ADR-0015](docs/adr/0015-single-global-config-xdg.md) for the field-by-field classification.
+
 ## How do I run it?
 
-See [`docs/adr/0005-state-and-config-layout.md`](docs/adr/0005-state-and-config-layout.md)
-for the config layout and [`docs/adr/0006-output-format-dual.md`](docs/adr/0006-output-format-dual.md)
-for the human/JSON output contract.
+See [ADR-0015](docs/adr/0015-single-global-config-xdg.md) for the config
+layout, [ADR-0005](docs/adr/0005-state-and-config-layout.md) for the
+project-local audit log location, and
+[ADR-0006](docs/adr/0006-output-format-dual.md) for the human/JSON output
+contract.
 
 ## How do I contribute?
 

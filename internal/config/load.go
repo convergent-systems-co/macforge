@@ -15,19 +15,24 @@ import (
 )
 
 // LoadOptions controls where Load reads from. Empty fields fall back to
-// defaults (./macforge.yaml for ProjectPath, the user-level config for UserPath).
+// defaults: GlobalPath defaults to ${XDG_CONFIG_HOME:-$HOME/.config}/macforge/macforge.yaml,
+// ProjectPath defaults to <cwd>/macforge.yaml.
 type LoadOptions struct {
-	ProjectPath string // explicit project config; default ./macforge.yaml
-	UserPath    string // explicit user config; default $XDG/MacForge/config.yaml
+	GlobalPath  string // explicit global config; default: ConfigPath()
+	ProjectPath string // explicit project override; default: ./macforge.yaml
 }
 
-// Load reads MacForge config with viper layering:
+// Load reads the MacForge config with viper layering:
 //
 //	flag        (handled by caller before invoking Load)
-//	env         (MACFORGE_* prefix)
-//	project YAML (./macforge.yaml unless overridden)
-//	user YAML   (~/Library/.../MacForge/config.yaml unless overridden)
+//	env         (MACFORGE_* prefix; dots in keys become underscores)
+//	./macforge.yaml         (project override, OPTIONAL — only if present)
+//	~/.config/macforge/macforge.yaml  (global base, REQUIRED)
 //	defaults
+//
+// Per ADR-0015. The global file is required; without it Load returns
+// MF-CONFIG-002 with a hint to run `macforge init`. The project-local
+// file is OPTIONAL — its absence is not an error.
 //
 // Returns a *mferrors.Error wrapping any read or validation failure.
 func Load(opts LoadOptions) (*Config, error) {
@@ -38,33 +43,44 @@ func Load(opts LoadOptions) (*Config, error) {
 
 	setDefaults(v)
 
-	projectPath := opts.ProjectPath
-	if projectPath == "" {
-		projectPath = "macforge.yaml"
+	globalPath := opts.GlobalPath
+	if globalPath == "" {
+		globalPath = ConfigPath()
 	}
 
-	if _, err := os.Stat(projectPath); err != nil {
+	// Global config is required.
+	if _, err := os.Stat(globalPath); err != nil {
 		return nil, mferrors.NewConfig(mferrors.CodeConfigMissing, "config.Load",
-			fmt.Sprintf("project config not found at %s", projectPath),
-			mferrors.WithHint("Run `macforge init` to scaffold one, or pass --config <path>"),
+			fmt.Sprintf("global config not found at %s", globalPath),
+			mferrors.WithHint("Run `macforge init --team <TEAM>` to scaffold it"),
 			mferrors.WithCause(err),
 		)
 	}
-	v.SetConfigFile(projectPath)
+	v.SetConfigFile(globalPath)
 	if err := v.MergeInConfig(); err != nil {
 		return nil, mferrors.NewConfig(mferrors.CodeConfigInvalid, "config.Load",
-			fmt.Sprintf("failed to parse %s", projectPath),
+			fmt.Sprintf("failed to parse global config %s", globalPath),
 			mferrors.WithCause(err),
 		)
 	}
 
-	userPath := opts.UserPath
-	if userPath == "" {
-		userPath = filepath.Join(UserConfigDir(), "config.yaml")
+	// Project-local override is optional. If present, it merges on top of
+	// global; per ADR-0015 it should carry only project-specific overrides
+	// (entitlements, package formats, publish target) — but the loader doesn't
+	// enforce that constraint in v0.1.
+	projectPath := opts.ProjectPath
+	if projectPath == "" {
+		cwd, _ := os.Getwd()
+		projectPath = filepath.Join(cwd, "macforge.yaml")
 	}
-	if _, err := os.Stat(userPath); err == nil {
-		v.SetConfigFile(userPath)
-		_ = v.MergeInConfig() // user config is optional; ignore parse errors silently? No — surface.
+	if _, err := os.Stat(projectPath); err == nil {
+		v.SetConfigFile(projectPath)
+		if err := v.MergeInConfig(); err != nil {
+			return nil, mferrors.NewConfig(mferrors.CodeConfigInvalid, "config.Load",
+				fmt.Sprintf("failed to parse project override %s", projectPath),
+				mferrors.WithCause(err),
+			)
+		}
 	}
 
 	cfg := &Config{}
