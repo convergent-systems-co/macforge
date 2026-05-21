@@ -70,7 +70,7 @@ func resolveOutputMode() string {
 // CLI commands defer this to make the runtime present even when the verb
 // short-circuits.
 func (rt *cliRuntime) emit(out output.Outputter, runErr error) error {
-	defer rt.audit.Close()
+	defer func() { _ = rt.audit.Close() }()
 	if runErr != nil {
 		var mfErr *mferrors.Error
 		if !asError(runErr, &mfErr) {
