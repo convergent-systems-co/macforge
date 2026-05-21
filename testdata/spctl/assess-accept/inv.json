@@ -1,0 +1,1 @@
+{"tool":"spctl","args":["--assess","--type","execute","--verbose=4","./build/MyApp.app"]}

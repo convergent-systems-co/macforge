@@ -1,0 +1,32 @@
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  default: none
+  enable:
+    - govet
+    - errcheck
+    - staticcheck
+    - ineffassign
+    - unused
+    - misspell
+    - revive
+    - gocritic
+    - bodyclose
+  settings:
+    revive:
+      rules:
+        # `exported` (missing doc comments on exported identifiers) is a
+        # legitimate finding but produces ~30+ hits across the v0.1 codebase
+        # because the rapid iteration didn't backfill godocs for every
+        # exported const/type/func. Disabled here so unrelated PRs aren't
+        # blocked; tracked as a follow-up cleanup.
+        - name: exported
+          disabled: true
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - errcheck

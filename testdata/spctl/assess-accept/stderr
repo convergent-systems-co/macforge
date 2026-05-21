@@ -1,0 +1,3 @@
+./build/MyApp.app: accepted
+source=Notarized Developer ID
+origin=Developer ID Application: ACME Inc. (XYZ1234567)
