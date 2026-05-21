@@ -135,7 +135,7 @@ func keychainPath(name string) (string, error) {
 		return "", err
 	}
 	if !strings.HasSuffix(name, ".keychain-db") {
-		name = name + ".keychain-db"
+		name += ".keychain-db"
 	}
 	return filepath.Join(home, "Library", "Keychains", name), nil
 }
