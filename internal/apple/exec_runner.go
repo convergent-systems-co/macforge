@@ -94,13 +94,21 @@ func (r *ExecRunner) writeAttempt(inv Invocation) {
 		return
 	}
 	cwd, _ := osGetwd()
+	payload := argvString(inv)
+	// Apply the per-invocation Redact list BEFORE the event reaches the Writer.
+	// The Writer has its own redactor for cross-cutting secrets declared at
+	// construction time; this handles secrets known only to a single call site
+	// (e.g. keychain passwords, --p12-password values). See issue #3.
+	if len(inv.Redact) > 0 {
+		payload = audit.NewRedactor(inv.Redact).Apply(payload)
+	}
 	_ = r.audit.Write(audit.Event{
 		Trace:        r.trace,
 		Cwd:          cwd,
 		Actor:        audit.ActorMacforge,
 		Kind:         audit.KindInvocationAttempt,
 		Probe:        inv.Tool,
-		ProbePayload: argvString(inv),
+		ProbePayload: payload,
 		Redacted:     redactedKinds(inv),
 	})
 }

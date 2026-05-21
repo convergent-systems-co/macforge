@@ -5,11 +5,14 @@ package apple_test
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/convergent-systems-co/macforge/internal/apple"
+	"github.com/convergent-systems-co/macforge/internal/audit"
 )
 
 func TestExecRunner_CapturesStdout(t *testing.T) {
@@ -48,5 +51,46 @@ func TestExecRunner_Timeout(t *testing.T) {
 	})
 	if err == nil {
 		t.Fatal("expected timeout error, got nil")
+	}
+}
+
+// TestExecRunner_RedactsInvocationSecrets is the regression test for issue #3.
+// Per Common.md §4 and ADR-0012, any secret declared in Invocation.Redact MUST
+// NOT appear in the audit log's probe_payload.
+func TestExecRunner_RedactsInvocationSecrets(t *testing.T) {
+	dir := t.TempDir()
+	w, err := audit.NewWriter(dir, audit.NewRedactor(nil)) // writer has NO secrets known
+	if err != nil {
+		t.Fatalf("NewWriter: %v", err)
+	}
+	defer w.Close()
+
+	r := apple.NewExecRunner(w)
+	r.SetTrace("TEST-REDACT")
+
+	const password = "hunter2-super-secret-xyz"
+	_, err = r.Run(context.Background(), apple.Invocation{
+		Tool:   "echo",
+		Args:   []string{"--password", password, "rest"},
+		Redact: []string{password},
+	})
+	if err != nil {
+		t.Fatalf("Run: %v", err)
+	}
+
+	files, _ := filepath.Glob(filepath.Join(dir, "*.jsonl"))
+	if len(files) != 1 {
+		t.Fatalf("expected 1 audit file, got %d", len(files))
+	}
+	contents, err := os.ReadFile(files[0])
+	if err != nil {
+		t.Fatalf("ReadFile: %v", err)
+	}
+
+	if strings.Contains(string(contents), password) {
+		t.Fatalf("audit log leaked secret %q:\n%s", password, string(contents))
+	}
+	if !strings.Contains(string(contents), "[REDACTED]") {
+		t.Fatalf("audit log missing [REDACTED] marker:\n%s", string(contents))
 	}
 }
