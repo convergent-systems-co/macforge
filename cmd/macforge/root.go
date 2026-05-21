@@ -32,7 +32,7 @@ and publishing for macOS software distributed outside the App Store.`,
 	}
 
 	pflags := root.PersistentFlags()
-	pflags.StringVar(&gflags.configPath, "config", "", "path to macforge.yaml (default: ./macforge.yaml)")
+	pflags.StringVar(&gflags.configPath, "config", "", "path to global macforge.yaml (default: ~/.config/macforge/macforge.yaml)")
 	pflags.StringVar(&gflags.output, "output", "", "output mode: human | json (default: human, auto json under GITHUB_ACTIONS)")
 	pflags.StringVar(&gflags.logLevel, "log-level", "info", "error | warn | info | debug | trace")
 	pflags.StringVar(&gflags.teamID, "team-id", "", "override config team selection")
