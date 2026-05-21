@@ -15,7 +15,7 @@ func TestInit_WritesGlobalScaffold(t *testing.T) {
 	t.Setenv("XDG_CONFIG_HOME", dir)
 
 	root := newRootCmd()
-	root.SetArgs([]string{"init", "--team", "XYZ1234567"})
+	root.SetArgs([]string{"apple", "init", "--team", "XYZ1234567"})
 	if err := root.Execute(); err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
@@ -65,7 +65,7 @@ func TestInit_RefusesOverwrite(t *testing.T) {
 	}
 
 	root := newRootCmd()
-	root.SetArgs([]string{"init", "--team", "XYZ"})
+	root.SetArgs([]string{"apple", "init", "--team", "XYZ"})
 	err := root.Execute()
 	if err == nil {
 		t.Fatal("expected refusal when global macforge.yaml exists")
@@ -78,7 +78,7 @@ func TestInit_CreatesParentDir(t *testing.T) {
 	// Parent dir doesn't exist yet — init must MkdirAll it.
 
 	root := newRootCmd()
-	root.SetArgs([]string{"init", "--team", "ABC9876543"})
+	root.SetArgs([]string{"apple", "init", "--team", "ABC9876543"})
 	if err := root.Execute(); err != nil {
 		t.Fatalf("Execute: %v", err)
 	}

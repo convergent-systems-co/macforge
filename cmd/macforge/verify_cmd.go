@@ -20,7 +20,7 @@ func newVerifyCmd() *cobra.Command {
 		Short: "Verify codesign + spctl + Gatekeeper for the given artifact",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			rt, err := newRuntime("verify", false)
+			rt, err := newRuntime("apple.verify", false)
 			if err != nil {
 				return err
 			}
@@ -49,7 +49,7 @@ type verifyResult struct {
 	Result verify.Result `json:"result"`
 }
 
-func (r verifyResult) SchemaName() string { return "macforge.v1.verify" }
+func (r verifyResult) SchemaName() string { return "macforge.v1.apple.verify" }
 func (r verifyResult) HumanLines() []string {
 	out := []string{"Path: " + r.Result.Path}
 	if r.Result.Codesign.OK {

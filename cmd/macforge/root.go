@@ -40,17 +40,12 @@ and publishing for macOS software distributed outside the App Store.`,
 	pflags.BoolVar(&gflags.noColor, "no-color", false, "disable ANSI output (also honors NO_COLOR)")
 	pflags.BoolVarP(&gflags.verbose, "verbose", "v", false, "shortcut for --log-level=debug")
 
+	// All Apple-platform release operations live under `macforge apple <verb>`.
+	// `version` stays at the root (universal). When macheim merges, its verbs
+	// will land at `macforge macheim <verb>` as a peer to `apple`. See
+	// docs/adr/0017-apple-command-namespace.md.
 	root.AddCommand(
-		newInitCmd(),
-		newIdentityCmd(),
-		newKeychainCmd(),
-		newSignCmd(),
-		newPackageCmd(),
-		newNotarizeCmd(),
-		newVerifyCmd(),
-		newPublishCmd(),
-		newReleaseCmd(),
-		newAuditCmd(),
+		newAppleCmd(),
 		newVersionCmd(),
 	)
 

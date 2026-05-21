@@ -32,17 +32,17 @@ load-bearing decision.
 
 | Verb                       | v0.1 status |
 |----------------------------|-------------|
-| `macforge init`            | ✓           |
-| `macforge keychain *`      | ✓           |
-| `macforge identity import` | ✓           |
-| `macforge identity list`   | ✓           |
-| `macforge identity status` | ✓           |
-| `macforge sign`            | ✓           |
-| `macforge verify`          | ✓           |
-| `macforge package`         | stub (v0.2) |
-| `macforge notarize`        | stub (v0.2) |
-| `macforge publish`         | stub (v0.2) |
-| `macforge release`         | stub (v0.2) |
+| `macforge apple init`            | ✓           |
+| `macforge apple keychain *`      | ✓           |
+| `macforge apple identity import` | ✓           |
+| `macforge apple identity list`   | ✓           |
+| `macforge apple identity status` | ✓           |
+| `macforge apple sign`            | ✓           |
+| `macforge apple verify`          | ✓           |
+| `macforge apple package`         | stub (v0.2) |
+| `macforge apple notarize`        | stub (v0.2) |
+| `macforge apple publish`         | stub (v0.2) |
+| `macforge apple release`         | stub (v0.2) |
 
 ## Quick start
 
@@ -51,15 +51,15 @@ load-bearing decision.
 go install github.com/convergent-systems-co/macforge/cmd/macforge@latest
 
 # 2. Scaffold the global config (one-time, identity-shaped fields only)
-macforge init --team XYZ1234567
+macforge apple init --team XYZ1234567
 # Writes ~/.config/macforge/macforge.yaml
 
 # 3. Create a dedicated keychain
 export MACFORGE_KEYCHAIN_PASSWORD=$(openssl rand -base64 24)
-macforge keychain create
+macforge apple keychain create
 
 # 4. Import a Developer ID certificate
-macforge identity import --file ./DeveloperID.cer
+macforge apple identity import --file ./DeveloperID.cer
 
 # 5. (Optional) Per-project overrides — only if your project needs them
 cd ~/code/myapp
@@ -74,10 +74,10 @@ publish:
 YAML
 
 # 6. Sign your build
-macforge sign ./build/MyApp.app
+macforge apple sign ./build/MyApp.app
 
 # 7. Verify
-macforge verify ./build/MyApp.app
+macforge apple verify ./build/MyApp.app
 ```
 
 ## Configuration layering
@@ -87,7 +87,7 @@ MacForge reads config in priority order (highest first):
 1. CLI flag — e.g., `--team-id`, `--entitlements`, `--config <path>`
 2. Environment — `MACFORGE_*` (e.g., `MACFORGE_KEYCHAIN_PASSWORD`)
 3. `./macforge.yaml` — project-local override (optional)
-4. `~/.config/macforge/macforge.yaml` — global base (required; created by `macforge init`)
+4. `~/.config/macforge/macforge.yaml` — global base (required; created by `macforge apple init`)
 5. Built-in defaults
 
 The global file holds identity-shaped fields (team, keychain, signing identity, ASC profile). The project-local file is optional and should carry only project-shaped fields (entitlements, package formats, publish target). See [ADR-0015](docs/adr/0015-single-global-config-xdg.md) for the field-by-field classification.

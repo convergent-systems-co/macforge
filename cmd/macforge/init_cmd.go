@@ -19,7 +19,7 @@ func newInitCmd() *cobra.Command {
 		Use:   "init",
 		Short: "Scaffold the global macforge.yaml (~/.config/macforge/macforge.yaml)",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			rt, err := newRuntime("init", false)
+			rt, err := newRuntime("apple.init", false)
 			if err != nil {
 				return err
 			}
@@ -39,7 +39,7 @@ type initResult struct {
 	Team string `json:"team"`
 }
 
-func (r initResult) SchemaName() string   { return "macforge.v1.init" }
+func (r initResult) SchemaName() string   { return "macforge.v1.apple.init" }
 func (r initResult) HumanLines() []string { return []string{"Wrote " + r.Path, "Team:  " + r.Team} }
 
 // runInit writes the GLOBAL scaffold to ~/.config/macforge/macforge.yaml

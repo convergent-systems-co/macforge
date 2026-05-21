@@ -43,7 +43,7 @@ manager or to seed a CI runner with the same identity.
 If --password is omitted, a fresh random password is generated and
 shown ONCE in the result envelope (save it immediately — not stored).`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			rt, err := newRuntime("identity.export", true)
+			rt, err := newRuntime("apple.identity.export", true)
 			if err != nil {
 				return err
 			}
@@ -92,7 +92,7 @@ After Apple issues the new cert via the new CSR, run
 new fingerprints will be present in ` + "`macforge identity list`" + ` until you
 manually retire the old cert (signing tools pick by name, both work).`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			rt, err := newRuntime("identity.rotate", true)
+			rt, err := newRuntime("apple.identity.rotate", true)
 			if err != nil {
 				return err
 			}
@@ -158,7 +158,7 @@ Upload the resulting .csr to https://developer.apple.com/account/resources/certi
 and pick "Developer ID Application". When Apple returns the issued .cer,
 import it with: macforge identity import --file <cert.cer>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			rt, err := newRuntime("identity.create", true)
+			rt, err := newRuntime("apple.identity.create", true)
 			if err != nil {
 				return err
 			}
@@ -213,7 +213,7 @@ func newIdentityImportCmd() *cobra.Command {
 		Use:   "import",
 		Short: "Import Developer ID certificate(s) into the dedicated keychain",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			rt, err := newRuntime("identity.import", true)
+			rt, err := newRuntime("apple.identity.import", true)
 			if err != nil {
 				return err
 			}
@@ -243,7 +243,7 @@ func newIdentityListCmd() *cobra.Command {
 		Use:   "list",
 		Short: "List identities in the configured keychain",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			rt, err := newRuntime("identity.list", true)
+			rt, err := newRuntime("apple.identity.list", true)
 			if err != nil {
 				return err
 			}
@@ -265,7 +265,7 @@ func newIdentityStatusCmd() *cobra.Command {
 		Use:   "status",
 		Short: "Show certificate validity, expiration, team (parsed from a cert file)",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			rt, err := newRuntime("identity.status", false)
+			rt, err := newRuntime("apple.identity.status", false)
 			if err != nil {
 				return err
 			}
@@ -284,7 +284,7 @@ type identityCreateResult struct {
 	Result identity.CreateResult `json:"result"`
 }
 
-func (r identityCreateResult) SchemaName() string { return "macforge.v1.identity.create" }
+func (r identityCreateResult) SchemaName() string { return "macforge.v1.apple.identity.create" }
 func (r identityCreateResult) HumanLines() []string {
 	out := []string{
 		"CSR written:          " + r.Result.CSRPath,
@@ -312,7 +312,7 @@ type identityExportResult struct {
 	Result identity.ExportResult `json:"result"`
 }
 
-func (r identityExportResult) SchemaName() string { return "macforge.v1.identity.export" }
+func (r identityExportResult) SchemaName() string { return "macforge.v1.apple.identity.export" }
 func (r identityExportResult) HumanLines() []string {
 	out := []string{
 		"PKCS#12 written:      " + r.Result.Path,
@@ -333,7 +333,7 @@ type identityRotateResult struct {
 	Result identity.RotateResult `json:"result"`
 }
 
-func (r identityRotateResult) SchemaName() string { return "macforge.v1.identity.rotate" }
+func (r identityRotateResult) SchemaName() string { return "macforge.v1.apple.identity.rotate" }
 func (r identityRotateResult) HumanLines() []string {
 	out := []string{}
 	if r.Result.ArchivePath != "" {
@@ -361,7 +361,7 @@ type identityImportResult struct {
 	Keychain string `json:"keychain"`
 }
 
-func (r identityImportResult) SchemaName() string { return "macforge.v1.identity.import" }
+func (r identityImportResult) SchemaName() string { return "macforge.v1.apple.identity.import" }
 func (r identityImportResult) HumanLines() []string {
 	return []string{"Imported: " + r.File, "Keychain: " + r.Keychain}
 }
@@ -371,7 +371,7 @@ type identityListResult struct {
 	Identities []security.Identity `json:"identities"`
 }
 
-func (r identityListResult) SchemaName() string { return "macforge.v1.identity.list" }
+func (r identityListResult) SchemaName() string { return "macforge.v1.apple.identity.list" }
 func (r identityListResult) HumanLines() []string {
 	out := []string{"Keychain: " + r.Keychain}
 	if len(r.Identities) == 0 {
@@ -388,7 +388,7 @@ type identityStatusResult struct {
 	Status identity.CertStatus  `json:"status"`
 }
 
-func (r identityStatusResult) SchemaName() string { return "macforge.v1.identity.status" }
+func (r identityStatusResult) SchemaName() string { return "macforge.v1.apple.identity.status" }
 func (r identityStatusResult) HumanLines() []string {
 	exp := "valid"
 	if r.Status.Expired {
