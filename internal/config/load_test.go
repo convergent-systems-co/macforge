@@ -183,9 +183,13 @@ func TestLoad_DefaultGlobalHonorsXDG(t *testing.T) {
 }
 
 func TestUserConfigDir_XDGOverridesHome(t *testing.T) {
-	t.Setenv("XDG_CONFIG_HOME", "/tmp/xdg-test-root")
+	// Use t.TempDir so the path uses the platform-native separator without
+	// hard-coding `/tmp/` (which on Windows resolves under C:\ and is
+	// written with backslashes).
+	xdg := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", xdg)
 	got := config.UserConfigDir()
-	want := "/tmp/xdg-test-root/macforge"
+	want := filepath.Join(xdg, "macforge")
 	if got != want {
 		t.Fatalf("UserConfigDir = %q, want %q", got, want)
 	}
@@ -205,9 +209,10 @@ func TestUserConfigDir_FallsBackToHomeDotConfig(t *testing.T) {
 }
 
 func TestConfigPath_EndsInMacforgeYAML(t *testing.T) {
-	t.Setenv("XDG_CONFIG_HOME", "/tmp/x")
+	xdg := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", xdg)
 	got := config.ConfigPath()
-	want := "/tmp/x/macforge/macforge.yaml"
+	want := filepath.Join(xdg, "macforge", "macforge.yaml")
 	if got != want {
 		t.Fatalf("ConfigPath = %q, want %q", got, want)
 	}

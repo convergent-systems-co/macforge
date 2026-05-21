@@ -1,0 +1,22 @@
+# Audit-fixture files are byte-exact recordings of Apple-tool stdout/stderr.
+# Git's autocrlf would convert LF → CRLF on Windows checkout, breaking the
+# byte-for-byte equality the Tier-2 FakeRunner tests rely on.
+testdata/** -text
+
+# Go source: always LF, never CRLF, regardless of platform autocrlf setting.
+*.go text eol=lf
+
+# CI / config files: LF for cross-platform reproducibility.
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.toml text eol=lf
+*.md text eol=lf
+
+# Go module files.
+go.mod text eol=lf
+go.sum text eol=lf
+
+# Shell scripts: LF (CRLF makes them un-executable on POSIX).
+*.sh text eol=lf
+Makefile text eol=lf
