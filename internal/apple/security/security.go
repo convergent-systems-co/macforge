@@ -131,6 +131,32 @@ func argsFindIdentity(keychain, policy string) []string {
 	return []string{"find-identity", "-p", policy, "-v", keychain}
 }
 
+// HasKeychain reports whether the named keychain exists and is reachable
+// by `security`. Wraps `security show-keychain-info <name>`, which exits
+// non-zero when the keychain is missing. Use to pre-flight import / sign
+// operations so we fail fast with a helpful hint instead of after
+// generating throwaway state.
+func (c *Client) HasKeychain(ctx context.Context, name string) (bool, error) {
+	res, err := c.r.Run(ctx, apple.Invocation{
+		Tool: "security",
+		Args: argsShowKeychainInfo(name),
+	})
+	if err != nil {
+		// Spawn-level errors (security binary missing, etc.) propagate.
+		return false, err
+	}
+	if res.ExitCode == 0 {
+		return true, nil
+	}
+	// Non-zero exit means the keychain isn't reachable — treat as "absent"
+	// rather than a structural error. The caller decides how to respond.
+	return false, nil
+}
+
+func argsShowKeychainInfo(name string) []string {
+	return []string{"show-keychain-info", name}
+}
+
 // Export writes all identities (cert + matching private key pairs) from
 // the named keychain to outFile as an AES-encrypted PKCS#12 bundle, sealed
 // with password. Wraps `security export -t identities -f pkcs12`.
