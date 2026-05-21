@@ -8,21 +8,30 @@ import (
 	"path/filepath"
 )
 
-// UserConfigDir returns the macOS standard user-level config root for MacForge.
-// On non-darwin hosts (used in cross-platform tests and CI) it falls back to
-// $HOME/.macforge-user.
+// UserConfigDir returns the directory holding the MacForge config.
+//
+// Honors $XDG_CONFIG_HOME if set, else falls back to $HOME/.config/macforge.
+// Uniform across macOS and Linux per ADR-0015 — the path is not
+// platform-specific.
 func UserConfigDir() string {
+	if xdg := os.Getenv("XDG_CONFIG_HOME"); xdg != "" {
+		return filepath.Join(xdg, "macforge")
+	}
 	home, _ := os.UserHomeDir()
 	if home == "" {
-		return ".macforge-user"
+		return filepath.Join(".config", "macforge")
 	}
-	if runtimeIsDarwin {
-		return filepath.Join(home, "Library", "Application Support", "MacForge")
-	}
-	return filepath.Join(home, ".macforge-user")
+	return filepath.Join(home, ".config", "macforge")
+}
+
+// ConfigPath returns the canonical macforge.yaml location.
+func ConfigPath() string {
+	return filepath.Join(UserConfigDir(), "macforge.yaml")
 }
 
 // ProjectAuditDir returns the project-local audit directory (./.macforge/audit).
+// Audit log location stays per-project per ADR-0005 §audit; only the config
+// moved to the global location per ADR-0015.
 func ProjectAuditDir(cwd string) string {
 	return filepath.Join(cwd, ".macforge", "audit")
 }

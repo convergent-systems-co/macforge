@@ -11,9 +11,20 @@ import (
 	"github.com/convergent-systems-co/macforge/internal/config"
 )
 
-func TestLoad_ProjectYAML(t *testing.T) {
+func writeYAML(t *testing.T, path, body string) {
+	t.Helper()
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+		t.Fatalf("write %s: %v", path, err)
+	}
+}
+
+func TestLoad_GlobalOnly(t *testing.T) {
 	dir := t.TempDir()
-	yaml := `
+	global := filepath.Join(dir, "global.yaml")
+	writeYAML(t, global, `
 version: 1
 team: XYZ1234567
 identity:
@@ -24,79 +35,180 @@ keychain:
 sign:
   hardened_runtime: true
   timestamp: true
-  entitlements: ./Entitlements.plist
-`
-	path := filepath.Join(dir, "macforge.yaml")
-	if err := os.WriteFile(path, []byte(yaml), 0o644); err != nil {
-		t.Fatalf("write: %v", err)
-	}
+`)
 
-	cfg, err := config.Load(config.LoadOptions{ProjectPath: path})
+	cfg, err := config.Load(config.LoadOptions{
+		GlobalPath:  global,
+		ProjectPath: filepath.Join(dir, "nonexistent.yaml"),
+	})
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
-
-	if cfg.Version != 1 {
-		t.Fatalf("Version = %d, want 1", cfg.Version)
-	}
 	if cfg.Team != "XYZ1234567" {
 		t.Fatalf("Team = %q, want XYZ1234567", cfg.Team)
-	}
-	if cfg.Keychain.Name != "macforge-XYZ1234567-signing" {
-		t.Fatalf("Keychain.Name = %q", cfg.Keychain.Name)
 	}
 	if !cfg.Sign.HardenedRuntime {
 		t.Fatal("Sign.HardenedRuntime = false, want true")
 	}
 }
 
-func TestLoad_EnvOverridesYAML(t *testing.T) {
+func TestLoad_ProjectOverridesGlobal(t *testing.T) {
 	dir := t.TempDir()
-	yaml := `
+	global := filepath.Join(dir, "global.yaml")
+	project := filepath.Join(dir, "macforge.yaml")
+	writeYAML(t, global, `
 version: 1
-team: XYZ1234567
-keychain:
-  name: from-yaml
-`
-	path := filepath.Join(dir, "macforge.yaml")
-	if err := os.WriteFile(path, []byte(yaml), 0o644); err != nil {
-		t.Fatalf("write: %v", err)
-	}
+team: GLOBAL_TEAM
+sign:
+  hardened_runtime: true
+  entitlements: ./Global.plist
+package:
+  formats: [zip]
+`)
+	writeYAML(t, project, `
+sign:
+  entitlements: ./ProjectSpecific.plist
+package:
+  formats: [zip, dmg]
+`)
 
-	t.Setenv("MACFORGE_TEAM", "ABC9876543")
-
-	cfg, err := config.Load(config.LoadOptions{ProjectPath: path})
+	cfg, err := config.Load(config.LoadOptions{
+		GlobalPath:  global,
+		ProjectPath: project,
+	})
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
-	if cfg.Team != "ABC9876543" {
-		t.Fatalf("env override failed: Team = %q, want ABC9876543", cfg.Team)
+
+	// Team comes from global (not overridden).
+	if cfg.Team != "GLOBAL_TEAM" {
+		t.Fatalf("Team = %q, want GLOBAL_TEAM (project didn't override)", cfg.Team)
+	}
+	// Entitlements overridden by project.
+	if cfg.Sign.Entitlements != "./ProjectSpecific.plist" {
+		t.Fatalf("Sign.Entitlements = %q, want ./ProjectSpecific.plist", cfg.Sign.Entitlements)
+	}
+	// HardenedRuntime stays from global (project didn't touch it).
+	if !cfg.Sign.HardenedRuntime {
+		t.Fatal("Sign.HardenedRuntime = false, want true (carried from global)")
+	}
+	// Formats overridden by project.
+	if len(cfg.Package.Formats) != 2 || cfg.Package.Formats[1] != "dmg" {
+		t.Fatalf("Package.Formats = %v, want [zip dmg]", cfg.Package.Formats)
+	}
+}
+
+func TestLoad_EnvOverridesBoth(t *testing.T) {
+	dir := t.TempDir()
+	global := filepath.Join(dir, "global.yaml")
+	project := filepath.Join(dir, "macforge.yaml")
+	writeYAML(t, global, "version: 1\nteam: GLOBAL\n")
+	writeYAML(t, project, "team: PROJECT\n")
+
+	t.Setenv("MACFORGE_TEAM", "ENV_WINS")
+
+	cfg, err := config.Load(config.LoadOptions{
+		GlobalPath:  global,
+		ProjectPath: project,
+	})
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if cfg.Team != "ENV_WINS" {
+		t.Fatalf("Team = %q, want ENV_WINS", cfg.Team)
 	}
 }
 
 func TestLoad_RejectsInlinePassword(t *testing.T) {
 	dir := t.TempDir()
-	yaml := `
+	global := filepath.Join(dir, "global.yaml")
+	writeYAML(t, global, `
 version: 1
 team: XYZ1234567
 keychain:
-  name: macforge-XYZ1234567-signing
   unlock: hunter2
-`
-	path := filepath.Join(dir, "macforge.yaml")
-	if err := os.WriteFile(path, []byte(yaml), 0o644); err != nil {
-		t.Fatalf("write: %v", err)
-	}
+`)
 
-	_, err := config.Load(config.LoadOptions{ProjectPath: path})
+	_, err := config.Load(config.LoadOptions{
+		GlobalPath:  global,
+		ProjectPath: filepath.Join(dir, "nonexistent.yaml"),
+	})
 	if err == nil {
 		t.Fatal("expected error for inline password, got nil")
 	}
 }
 
-func TestLoad_MissingFileIsError(t *testing.T) {
-	_, err := config.Load(config.LoadOptions{ProjectPath: "/nonexistent/macforge.yaml"})
+func TestLoad_MissingGlobalIsError(t *testing.T) {
+	_, err := config.Load(config.LoadOptions{
+		GlobalPath:  "/nonexistent/global.yaml",
+		ProjectPath: "/nonexistent/project.yaml",
+	})
 	if err == nil {
-		t.Fatal("expected error for missing config, got nil")
+		t.Fatal("expected error for missing global config, got nil")
+	}
+}
+
+func TestLoad_MissingProjectIsOK(t *testing.T) {
+	dir := t.TempDir()
+	global := filepath.Join(dir, "global.yaml")
+	writeYAML(t, global, "version: 1\nteam: XYZ\n")
+
+	_, err := config.Load(config.LoadOptions{
+		GlobalPath:  global,
+		ProjectPath: filepath.Join(dir, "no-such-file.yaml"),
+	})
+	if err != nil {
+		t.Fatalf("missing project override should be silent: %v", err)
+	}
+}
+
+func TestLoad_DefaultGlobalHonorsXDG(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", dir)
+
+	global := filepath.Join(dir, "macforge", "macforge.yaml")
+	writeYAML(t, global, "version: 1\nteam: ZZZ0000000\n")
+
+	// Set project path to a non-existent file in another tempdir so the
+	// cwd default doesn't accidentally pick up a real macforge.yaml.
+	cfg, err := config.Load(config.LoadOptions{
+		ProjectPath: filepath.Join(t.TempDir(), "no-project.yaml"),
+	})
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if cfg.Team != "ZZZ0000000" {
+		t.Fatalf("Team = %q, want ZZZ0000000 (XDG-defaulted global)", cfg.Team)
+	}
+}
+
+func TestUserConfigDir_XDGOverridesHome(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", "/tmp/xdg-test-root")
+	got := config.UserConfigDir()
+	want := "/tmp/xdg-test-root/macforge"
+	if got != want {
+		t.Fatalf("UserConfigDir = %q, want %q", got, want)
+	}
+}
+
+func TestUserConfigDir_FallsBackToHomeDotConfig(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", "")
+	home, err := os.UserHomeDir()
+	if err != nil {
+		t.Skipf("UserHomeDir: %v", err)
+	}
+	got := config.UserConfigDir()
+	want := filepath.Join(home, ".config", "macforge")
+	if got != want {
+		t.Fatalf("UserConfigDir = %q, want %q", got, want)
+	}
+}
+
+func TestConfigPath_EndsInMacforgeYAML(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", "/tmp/x")
+	got := config.ConfigPath()
+	want := "/tmp/x/macforge/macforge.yaml"
+	if got != want {
+		t.Fatalf("ConfigPath = %q, want %q", got, want)
 	}
 }
