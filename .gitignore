@@ -1,0 +1,14 @@
+# MacForge ephemeral state
+/.macforge/
+
+# Go build artifacts
+/bin/
+*.test
+*.out
+
+# IDE
+/.idea/
+/.vscode/
+
+# OS
+.DS_Store

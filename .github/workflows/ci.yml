@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: ".go-version"
+          cache: true
+      - uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+
+  unit:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-14, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: ".go-version"
+          cache: true
+      - run: go build ./...
+      - run: go test -race -cover ./...
+
+  integration:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-14]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: ".go-version"
+          cache: true
+      - run: go test -race -tags=integration ./...
+
+  vulncheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: ".go-version"
+          cache: true
+      - run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+
+  e2e:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' || contains(github.event.pull_request.labels.*.name, 'e2e:run')
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: ".go-version"
+          cache: true
+      - name: Run e2e tests
+        env:
+          MACFORGE_E2E_TEAM: ${{ secrets.MACFORGE_E2E_TEAM }}
+          MACFORGE_E2E_KEYCHAIN_PASSWORD: ${{ secrets.MACFORGE_E2E_KEYCHAIN_PASSWORD }}
+          MACFORGE_E2E_CERT_PATH: ${{ secrets.MACFORGE_E2E_CERT_PATH }}
+          MACFORGE_E2E_P12_PASSWORD: ${{ secrets.MACFORGE_E2E_P12_PASSWORD }}
+          MACFORGE_E2E_ASC_PROFILE: ${{ secrets.MACFORGE_E2E_ASC_PROFILE }}
+        run: go test -tags='darwin,e2e' ./e2e/...
