@@ -75,17 +75,8 @@ func TestRoot_HelpListsEveryCommand(t *testing.T) {
 // brew bundle is no longer a stub; integration coverage lives in
 // internal/brew/bundle_test.go (Apply + summarize).
 
-func TestStub_UpdateLocalToRemote(t *testing.T) {
-	t.Parallel()
-	stdout, _, _, err := runRoot(t, "update", "local-to-remote")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	want := "update local-to-remote: not implemented yet (see issue #15)\n"
-	if stdout != want {
-		t.Errorf("stdout:\n  got:  %q\n  want: %q", stdout, want)
-	}
-}
+// update local-to-remote is no longer a stub; integration coverage moved
+// to update_test.go (TestUpdateLocalToRemote_*).
 
 func TestStub_ZshSetup(t *testing.T) {
 	t.Parallel()
