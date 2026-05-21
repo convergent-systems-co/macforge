@@ -29,9 +29,14 @@ func ConfigPath() string {
 	return filepath.Join(UserConfigDir(), "macforge.yaml")
 }
 
-// ProjectAuditDir returns the project-local audit directory (./.macforge/audit).
-// Audit log location stays per-project per ADR-0005 §audit; only the config
-// moved to the global location per ADR-0015.
-func ProjectAuditDir(cwd string) string {
-	return filepath.Join(cwd, ".macforge", "audit")
+// AuditDir returns the user-home audit directory at ~/.macforge/audit.
+// Per ADR-0016 the audit log is user-scoped (not per-project) and
+// per-invocation (not daily-rotated). Honors $HOME; falls back to
+// `.macforge/audit` if $HOME is unset (extremely unusual; cwd-relative).
+func AuditDir() string {
+	home, _ := os.UserHomeDir()
+	if home == "" {
+		return filepath.Join(".macforge", "audit")
+	}
+	return filepath.Join(home, ".macforge", "audit")
 }

@@ -6,6 +6,8 @@ package main
 import (
 	"io"
 	"os"
+	"path/filepath"
+	"time"
 
 	"github.com/convergent-systems-co/macforge/internal/audit"
 	"github.com/convergent-systems-co/macforge/internal/config"
@@ -28,9 +30,13 @@ type cliRuntime struct {
 func newRuntime(command string, loadConfig bool) (*cliRuntime, error) {
 	rt := &cliRuntime{trace: audit.NewTraceID()}
 
-	cwd, _ := os.Getwd()
-	auditDir := config.ProjectAuditDir(cwd)
-	w, err := audit.NewWriter(auditDir, audit.NewRedactor(nil))
+	// Per ADR-0016: per-invocation file at ~/.macforge/audit/<UTC>-<trace>.jsonl
+	now := time.Now().UTC()
+	auditFile := filepath.Join(
+		config.AuditDir(),
+		now.Format("2006-01-02T15-04-05Z")+"-"+rt.trace+".jsonl",
+	)
+	w, err := audit.NewWriter(auditFile, audit.NewRedactor(nil))
 	if err != nil {
 		return nil, mferrors.NewAudit(mferrors.CodeAuditWriteFail, "runtime.newRuntime",
 			"failed to open audit writer", mferrors.WithCause(err))

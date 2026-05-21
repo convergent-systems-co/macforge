@@ -12,28 +12,30 @@ import (
 	"time"
 )
 
-// Writer appends Event records to a daily-rotated JSONL file in dir.
-// All writes are serialized; Write is safe for concurrent use.
+// Writer appends Event records as JSONL to a single file. The file is
+// determined at construction time — per ADR-0016 each `macforge`
+// invocation writes to its own file at ~/.macforge/audit/<UTC>-<trace>.jsonl.
+// No rotation logic here; the runtime computes the filename.
 type Writer struct {
 	mu       sync.Mutex
-	dir      string
+	path     string
 	redactor *Redactor
-	day      string // current UTC date suffix, e.g. "2026-05-21"
 	f        *os.File
 }
 
-// NewWriter creates a Writer rooted at dir. The directory is created if missing.
-// redactor masks declared secret substrings from probe_payload before each line
-// is serialized. Pass NewRedactor(nil) for a no-op redactor.
-func NewWriter(dir string, redactor *Redactor) (*Writer, error) {
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return nil, fmt.Errorf("audit: mkdir %s: %w", dir, err)
+// NewWriter creates a Writer that appends to path. The parent directory
+// is created if missing. redactor masks declared secret substrings from
+// probe_payload and note before each line is serialized; pass
+// NewRedactor(nil) for a no-op redactor.
+func NewWriter(path string, redactor *Redactor) (*Writer, error) {
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return nil, fmt.Errorf("audit: mkdir %s: %w", filepath.Dir(path), err)
 	}
-	return &Writer{dir: dir, redactor: redactor}, nil
+	return &Writer{path: path, redactor: redactor}, nil
 }
 
-// Write serializes ev to one JSONL line in the day-rotated file.
-// secrets in ProbePayload are redacted before serialization.
+// Write serializes ev to one JSONL line. The file is opened on first
+// Write and held open until Close. Safe for concurrent use.
 func (w *Writer) Write(ev Event) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -42,18 +44,12 @@ func (w *Writer) Write(ev Event) error {
 		ev.Chronon = time.Now().UTC()
 	}
 
-	day := ev.Chronon.UTC().Format("2006-01-02")
-	if day != w.day || w.f == nil {
-		if w.f != nil {
-			_ = w.f.Close()
-		}
-		path := filepath.Join(w.dir, day+".jsonl")
-		f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	if w.f == nil {
+		f, err := os.OpenFile(w.path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 		if err != nil {
-			return fmt.Errorf("audit: open %s: %w", path, err)
+			return fmt.Errorf("audit: open %s: %w", w.path, err)
 		}
 		w.f = f
-		w.day = day
 	}
 
 	if w.redactor != nil {
@@ -83,4 +79,11 @@ func (w *Writer) Close() error {
 	err := w.f.Close()
 	w.f = nil
 	return err
+}
+
+// Path returns the file this Writer is appending to. Useful in the
+// result envelope so the caller can surface the audit-file path to
+// the operator.
+func (w *Writer) Path() string {
+	return w.path
 }
