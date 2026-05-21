@@ -27,7 +27,7 @@ Originated as github.com/polliard/macheim; merged into macforge on
 	}
 
 	pflags := cmd.PersistentFlags()
-	pflags.String("workstation-repo", "", "path to your workstation repo (overrides discovery; also reads MACFORGE_WORKSTATION_REPO)")
+	pflags.String("workstation-repo", "", "path to your workstation repo (overrides discovery; also reads MACHEIM_REPO — will be MACFORGE_WORKSTATION_REPO once viper layering wires through)")
 	pflags.BoolP("quiet", "q", false, "suppress non-error output")
 	pflags.BoolP("yes", "y", false, "skip confirmation prompts")
 
