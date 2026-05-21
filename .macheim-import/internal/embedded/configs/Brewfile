@@ -1,0 +1,2 @@
+# Placeholder Brewfile. Sub-issue #21 lands the real source. The Makefile
+# `embed-sync` target copies repo Brewfile here at build time.
