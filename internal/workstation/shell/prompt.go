@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/polliard/macheim/internal/config"
+	"github.com/convergent-systems-co/macforge/internal/workstation/config"
 )
 
 // Prompt reads a y/n response from r and returns true only for y / Y /

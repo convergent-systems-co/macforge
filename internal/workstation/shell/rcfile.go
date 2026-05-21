@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/polliard/macheim/internal/config"
+	"github.com/convergent-systems-co/macforge/internal/workstation/config"
 )
 
 // AppendIfMissing appends line to rcPath only when the exact line is not

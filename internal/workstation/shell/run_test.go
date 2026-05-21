@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/polliard/macheim/internal/config"
+	"github.com/convergent-systems-co/macforge/internal/workstation/config"
 )
 
 // captureStderr replaces os.Stderr with a pipe for the duration of fn and

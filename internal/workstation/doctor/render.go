@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/polliard/macheim/internal/config"
-	"github.com/polliard/macheim/internal/output"
+	"github.com/convergent-systems-co/macforge/internal/workstation/config"
+	"github.com/convergent-systems-co/macforge/internal/workstation/output"
 )
 
 // render is the per-Run rendering state. One instance is constructed when

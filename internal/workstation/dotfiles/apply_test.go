@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/polliard/macheim/internal/config"
+	"github.com/convergent-systems-co/macforge/internal/workstation/config"
 )
 
 // readFile is a tiny helper to keep test assertions readable.

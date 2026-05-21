@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/polliard/macheim/internal/config"
+	"github.com/convergent-systems-co/macforge/internal/workstation/config"
 )
 
 // fakeStat returns a stub os.FileInfo for table tests.

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/polliard/macheim/internal/config"
+	"github.com/convergent-systems-co/macforge/internal/workstation/config"
 )
 
 // newRepo creates a tempdir, runs `git init`, configures a local identity,

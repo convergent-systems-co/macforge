@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/polliard/macheim/internal/config"
+	"github.com/convergent-systems-co/macforge/internal/workstation/config"
 )
 
 func TestPrompt_YesShortCircuits(t *testing.T) {

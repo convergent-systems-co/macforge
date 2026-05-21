@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/polliard/macheim/internal/config"
-	"github.com/polliard/macheim/internal/embedded"
-	"github.com/polliard/macheim/internal/shell"
+	"github.com/convergent-systems-co/macforge/internal/workstation/config"
+	"github.com/convergent-systems-co/macforge/internal/workstation/embedded"
+	"github.com/convergent-systems-co/macforge/internal/workstation/shell"
 )
 
 // embedBrewfilePath names the embedded Brewfile inside the embedded.Configs

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/polliard/macheim/internal/config"
-	"github.com/polliard/macheim/internal/embedded"
-	"github.com/polliard/macheim/internal/shell"
+	"github.com/convergent-systems-co/macforge/internal/workstation/config"
+	"github.com/convergent-systems-co/macforge/internal/workstation/embedded"
+	"github.com/convergent-systems-co/macforge/internal/workstation/shell"
 )
 
 // shellenvLine is the rc-file line that exposes brew on PATH for future

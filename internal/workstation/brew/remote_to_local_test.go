@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/polliard/macheim/internal/config"
-	"github.com/polliard/macheim/internal/embedded"
+	"github.com/convergent-systems-co/macforge/internal/workstation/config"
+	"github.com/convergent-systems-co/macforge/internal/workstation/embedded"
 )
 
 // stubR2LSeam fills panicking defaults so an unstubbed call is loud.

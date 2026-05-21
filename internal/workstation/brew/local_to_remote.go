@@ -9,8 +9,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/polliard/macheim/internal/config"
-	"github.com/polliard/macheim/internal/shell"
+	"github.com/convergent-systems-co/macforge/internal/workstation/config"
+	"github.com/convergent-systems-co/macforge/internal/workstation/shell"
 )
 
 // localToRemoteSeam bundles the host-touching dependencies that

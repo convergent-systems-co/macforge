@@ -7,9 +7,9 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/polliard/macheim/internal/config"
-	"github.com/polliard/macheim/internal/gitrepo"
-	"github.com/polliard/macheim/internal/output"
+	"github.com/convergent-systems-co/macforge/internal/workstation/config"
+	"github.com/convergent-systems-co/macforge/internal/workstation/gitrepo"
+	"github.com/convergent-systems-co/macforge/internal/workstation/output"
 )
 
 // brewSeam bundles the OS-touching dependencies of brewRow so tests can

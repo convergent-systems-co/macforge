@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/polliard/macheim/internal/config"
-	"github.com/polliard/macheim/internal/output"
+	"github.com/convergent-systems-co/macforge/internal/workstation/config"
+	"github.com/convergent-systems-co/macforge/internal/workstation/output"
 )
 
 // newTestRender constructs a render bound to a bytes.Buffer. Because the

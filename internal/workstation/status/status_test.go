@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/polliard/macheim/internal/config"
+	"github.com/convergent-systems-co/macforge/internal/workstation/config"
 )
 
 // TestRun_QuietHidesDriftPlaceholders verifies the orchestrator's --quiet

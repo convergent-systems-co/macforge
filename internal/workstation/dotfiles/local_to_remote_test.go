@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/polliard/macheim/internal/config"
+	"github.com/convergent-systems-co/macforge/internal/workstation/config"
 )
 
 // stubL2RSeam fills in a panicking prompt default so an unstubbed

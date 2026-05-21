@@ -6,8 +6,8 @@ package status
 import (
 	"io"
 
-	"github.com/polliard/macheim/internal/config"
-	"github.com/polliard/macheim/internal/output"
+	"github.com/convergent-systems-co/macforge/internal/workstation/config"
+	"github.com/convergent-systems-co/macforge/internal/workstation/output"
 )
 
 // Section is one named area of the status report.

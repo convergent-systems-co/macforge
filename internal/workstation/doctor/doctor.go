@@ -10,7 +10,7 @@ import (
 	"os/exec"
 	"runtime"
 
-	"github.com/polliard/macheim/internal/config"
+	"github.com/convergent-systems-co/macforge/internal/workstation/config"
 	"github.com/urfave/cli/v3"
 )
 

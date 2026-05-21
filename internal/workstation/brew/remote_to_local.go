@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/polliard/macheim/internal/config"
-	"github.com/polliard/macheim/internal/embedded"
-	"github.com/polliard/macheim/internal/gitrepo"
-	"github.com/polliard/macheim/internal/shell"
+	"github.com/convergent-systems-co/macforge/internal/workstation/config"
+	"github.com/convergent-systems-co/macforge/internal/workstation/embedded"
+	"github.com/convergent-systems-co/macforge/internal/workstation/gitrepo"
+	"github.com/convergent-systems-co/macforge/internal/workstation/shell"
 )
 
 // remoteToLocalSeam bundles the host-touching dependencies that
