@@ -1,0 +1,1 @@
+{"tool":"codesign","args":["--verify","--strict","--verbose=2","./build/MyApp.app"]}
