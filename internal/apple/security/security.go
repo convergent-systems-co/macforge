@@ -130,3 +130,29 @@ func argsSetKeychainSettings(name string, lockOnSleep bool, timeoutSecs int) []s
 func argsFindIdentity(keychain, policy string) []string {
 	return []string{"find-identity", "-p", policy, "-v", keychain}
 }
+
+// Import installs an X.509 certificate or PKCS#12 key+cert bundle into a
+// keychain. -A allows any application to use the imported item.
+func (c *Client) Import(ctx context.Context, file, keychain, password string) error {
+	args := []string{"import", file, "-k", keychain, "-A"}
+	redact := []string{}
+	if password != "" {
+		args = append(args, "-P", password)
+		redact = append(redact, password)
+	}
+	res, err := c.r.Run(ctx, apple.Invocation{
+		Tool:   "security",
+		Args:   args,
+		Redact: redact,
+	})
+	if err != nil {
+		return err
+	}
+	if res.ExitCode != 0 {
+		return mferrors.NewIdentity(mferrors.CodeIdentityImportFail,
+			"security.Import",
+			fmt.Sprintf("security import failed: %s", strings.TrimSpace(string(res.Stderr))),
+			mferrors.WithDetails(map[string]any{"file": file, "keychain": keychain}))
+	}
+	return nil
+}
