@@ -1,0 +1,9 @@
+# macheim configuration. Place at ~/.config/macheim/config.yaml.
+#
+# All fields are optional. When unset, macheim falls back through the
+# discovery chain: --repo flag, MACHEIM_REPO env, this file, the
+# conventional paths ~/src/macheim or ~/code/macheim, then the embedded
+# fallback shipped with the binary itself.
+
+# Absolute path to your macheim repo clone.
+# repo_path: /Users/you/src/macheim
