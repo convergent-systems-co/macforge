@@ -9,6 +9,8 @@ SemVer.
 ### Added
 
 - **`macforge identity create`** — generate an RSA-2048 keypair + PKCS#10 CSR for the Apple Developer ID portal, AND bundle the private key in an encrypted PKCS#12 backup, AND import the key into the configured macforge keychain. The private key never touches disk unencrypted. Flags: `--cn` (required), `--org`, `--email`, `--country`, `--out` (path prefix; default `./identity` → `./identity.csr` + `./identity.p12`), `--p12-password` (optional; generated if omitted and shown once on stdout), `--keychain`. Promotes the stub from v0.2 — closes the v0.1 gap where users were told to import a Developer ID cert but the tool couldn't help them generate the CSR to get one.
+- **`macforge identity rotate`** — archive the current keychain identities to an encrypted PKCS#12, then generate a fresh RSA-2048 key + CSR (like `create`). Both old and new keys remain in the keychain afterward (Apple allows multiple valid Developer ID certs per team). Same flags as `create` plus `--archive-out` (default `./identity-archive-<UTC>.p12`), `--archive-password`, `--no-archive`.
+- **`macforge identity export`** — write all identities from the configured keychain to an AES-encrypted PKCS#12 backup via `security export`. Flags: `--keychain`, `--out`, `--p12-password`. Output file is `chmod 0600`. Useful for password-manager backups and seeding CI runners.
 
 ### Fixed
 

@@ -131,6 +131,39 @@ func argsFindIdentity(keychain, policy string) []string {
 	return []string{"find-identity", "-p", policy, "-v", keychain}
 }
 
+// Export writes all identities (cert + matching private key pairs) from
+// the named keychain to outFile as an AES-encrypted PKCS#12 bundle, sealed
+// with password. Wraps `security export -t identities -f pkcs12`.
+func (c *Client) Export(ctx context.Context, keychain, outFile, password string) error {
+	keyPath, err := keychainPath(keychain)
+	if err != nil {
+		return mferrors.NewIdentity(mferrors.CodeIdentityImportFail,
+			"security.Export", "could not resolve keychain path",
+			mferrors.WithCause(err))
+	}
+	res, err := c.r.Run(ctx, apple.Invocation{
+		Tool: "security",
+		Args: []string{
+			"export", "-k", keyPath,
+			"-t", "identities",
+			"-f", "pkcs12",
+			"-P", password,
+			"-o", outFile,
+		},
+		Redact: []string{password},
+	})
+	if err != nil {
+		return err
+	}
+	if res.ExitCode != 0 {
+		return mferrors.NewIdentity(mferrors.CodeIdentityImportFail,
+			"security.Export",
+			fmt.Sprintf("security export failed: %s", strings.TrimSpace(string(res.Stderr))),
+			mferrors.WithDetails(map[string]any{"keychain": keychain, "out": outFile, "exit": res.ExitCode}))
+	}
+	return nil
+}
+
 // Import installs an X.509 certificate or PKCS#12 key+cert bundle into a
 // keychain. -A allows any application to use the imported item.
 func (c *Client) Import(ctx context.Context, file, keychain, password string) error {
