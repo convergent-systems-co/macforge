@@ -30,19 +30,20 @@ v0.1 covers the foundation through sign+verify. See
 [`GOALS.md`](GOALS.md) for the full scope and `docs/adr/` for every
 load-bearing decision.
 
-| Verb                       | v0.1 status |
-|----------------------------|-------------|
-| `macforge apple init`            | ✓           |
-| `macforge apple keychain *`      | ✓           |
-| `macforge apple identity import` | ✓           |
-| `macforge apple identity list`   | ✓           |
-| `macforge apple identity status` | ✓           |
-| `macforge apple sign`            | ✓           |
-| `macforge apple verify`          | ✓           |
-| `macforge apple package`         | stub (v0.2) |
-| `macforge apple notarize`        | stub (v0.2) |
-| `macforge apple publish`         | stub (v0.2) |
-| `macforge apple release`         | stub (v0.2) |
+| Verb                              | v0.1 status |
+|-----------------------------------|-------------|
+| `macforge apple init`             | ✓           |
+| `macforge apple config validate`  | ✓           |
+| `macforge apple keychain *`       | ✓           |
+| `macforge apple identity import`  | ✓           |
+| `macforge apple identity list`    | ✓           |
+| `macforge apple identity status`  | ✓           |
+| `macforge apple sign`             | ✓           |
+| `macforge apple verify`           | ✓           |
+| `macforge apple package`          | stub (v0.2) |
+| `macforge apple notarize`         | stub (v0.2) |
+| `macforge apple publish`          | stub (v0.2) |
+| `macforge apple release`          | stub (v0.2) |
 
 ## Quick start
 
@@ -91,6 +92,8 @@ MacForge reads config in priority order (highest first):
 5. Built-in defaults
 
 The global file holds identity-shaped fields (team, keychain, signing identity, ASC profile). The project-local file is optional and should carry only project-shaped fields (entitlements, package formats, publish target). See [ADR-0015](docs/adr/0015-single-global-config-xdg.md) for the field-by-field classification.
+
+The config layer enforces field-by-field rules at every load: `team` is required, and (unless `keychain.allow_nonstandard: true`) `keychain.name` must match `macforge-<TEAM>-<PURPOSE>` with the `<TEAM>` segment equal to top-level `team`. Run `macforge apple config validate` at any time to see a green/red checklist of every static rule plus runtime checks (env-var presence, keychain reachability). See [ADR-0019](docs/adr/0019-aggressive-config-validation.md) for the full validation contract.
 
 ## How do I run it?
 
