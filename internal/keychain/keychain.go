@@ -32,7 +32,9 @@ type CreateOptions struct {
 }
 
 // Create resolves the password, validates the name, calls security
-// create-keychain, then applies set-keychain-settings.
+// create-keychain, applies set-keychain-settings, and prepends the new
+// keychain to the user's keychain search list so it's discoverable by
+// find-identity and codesign.
 func (m *Manager) Create(ctx context.Context, opts CreateOptions) error {
 	if !opts.AllowNonstandard {
 		if err := ValidateName(opts.Name); err != nil {
@@ -49,6 +51,9 @@ func (m *Manager) Create(ctx context.Context, opts CreateOptions) error {
 	if err := m.sec.SetSettings(ctx, opts.Name, opts.LockOnSleep, opts.LockTimeoutSecs); err != nil {
 		return err
 	}
+	if err := m.sec.AddToSearchList(ctx, opts.Name); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -61,10 +66,14 @@ func (m *Manager) Unlock(ctx context.Context, name, secretRef string) error {
 	return m.sec.UnlockKeychain(ctx, name, pw)
 }
 
-// Delete removes the keychain. Refuses login.* names (the security
-// wrapper also refuses; this is defense in depth).
+// Delete removes the keychain. First strips it from the user search list
+// so no stale entry remains; then deletes the file. Refuses login.* names
+// (the security wrapper also refuses; defense in depth).
 func (m *Manager) Delete(ctx context.Context, name string) error {
 	if err := ValidateName(name); err != nil {
+		return err
+	}
+	if err := m.sec.RemoveFromSearchList(ctx, name); err != nil {
 		return err
 	}
 	return m.sec.DeleteKeychain(ctx, name)
