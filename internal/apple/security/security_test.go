@@ -33,6 +33,14 @@ func TestArgs_SetKeychainSettings_LockAndTimeout(t *testing.T) {
 	}
 }
 
+func TestArgs_ShowKeychainInfo(t *testing.T) {
+	got := argsShowKeychainInfo("macforge-XYZ-signing")
+	want := []string{"show-keychain-info", "macforge-XYZ-signing"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("argsShowKeychainInfo = %v, want %v", got, want)
+	}
+}
+
 func TestArgs_FindIdentity(t *testing.T) {
 	got := argsFindIdentity("macforge-XYZ-signing", "codesigning")
 	want := []string{"find-identity", "-p", "codesigning", "-v", "macforge-XYZ-signing"}

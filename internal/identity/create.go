@@ -62,6 +62,20 @@ func (s *Service) Create(ctx context.Context, opts CreateOptions) (CreateResult,
 		opts.OutPrefix = "./identity"
 	}
 
+	// Pre-flight: refuse to do any keygen / file writes if the target
+	// keychain doesn't exist. See issue #6.
+	ok, err := s.sec.HasKeychain(ctx, opts.Keychain)
+	if err != nil {
+		return CreateResult{}, err
+	}
+	if !ok {
+		return CreateResult{}, mferrors.NewKeychain(mferrors.CodeKeychainMissing,
+			"identity.Create",
+			"target keychain does not exist: "+opts.Keychain,
+			mferrors.WithHint("Run `macforge keychain create` first to provision it"),
+			mferrors.WithDetails(map[string]any{"keychain": opts.Keychain}))
+	}
+
 	key, err := GenerateRSAKey()
 	if err != nil {
 		return CreateResult{}, mferrors.NewIdentity(mferrors.CodeIdentityImportFail,
@@ -116,6 +130,12 @@ func (s *Service) Create(ctx context.Context, opts CreateOptions) (CreateResult,
 	}
 
 	if err := s.sec.Import(ctx, p12Path, opts.Keychain, pw); err != nil {
+		// Clean up the throwaway artifacts so the caller sees a consistent
+		// "nothing happened" state. The keypair we generated never reached
+		// the keychain and the CSR/.p12 on disk are useless without a
+		// matching keychain entry. Issue #6.
+		_ = os.Remove(csrPath)
+		_ = os.Remove(p12Path)
 		return CreateResult{}, err
 	}
 
