@@ -19,7 +19,7 @@ func TestKeychain_HelpListsSubverbs(t *testing.T) {
 	root := newRootCmd()
 	root.SetOut(&buf)
 	root.SetErr(&buf)
-	root.SetArgs([]string{"keychain", "--help"})
+	root.SetArgs([]string{"apple", "keychain", "--help"})
 	if err := root.Execute(); err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
@@ -42,7 +42,7 @@ func TestKeychainCreate_RequiresValidName(t *testing.T) {
 
 	t.Setenv("MACFORGE_TEST_PW", "topsecret")
 	root := newRootCmd()
-	root.SetArgs([]string{"--output", "json", "keychain", "create",
+	root.SetArgs([]string{"--output", "json", "apple", "keychain", "create",
 		"--name", "definitely-not-a-macforge-name",
 		"--secret-ref", "env:MACFORGE_TEST_PW",
 	})

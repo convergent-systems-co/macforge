@@ -14,7 +14,7 @@ func TestIdentity_HelpListsSubverbs(t *testing.T) {
 	root := newRootCmd()
 	root.SetOut(&buf)
 	root.SetErr(&buf)
-	root.SetArgs([]string{"identity", "--help"})
+	root.SetArgs([]string{"apple", "identity", "--help"})
 	if err := root.Execute(); err != nil {
 		t.Fatalf("Execute: %v", err)
 	}

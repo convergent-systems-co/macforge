@@ -49,7 +49,7 @@ func newKeychainCreateCmd() *cobra.Command {
 		Use:   "create",
 		Short: "Create a new managed keychain with the default name",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			rt, err := newRuntime("keychain.create", true)
+			rt, err := newRuntime("apple.keychain.create", true)
 			if err != nil {
 				return err
 			}
@@ -89,7 +89,7 @@ func newKeychainDeleteCmd() *cobra.Command {
 		Use:   "delete",
 		Short: "Delete a managed keychain (refuses login.keychain)",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			rt, err := newRuntime("keychain.delete", true)
+			rt, err := newRuntime("apple.keychain.delete", true)
 			if err != nil {
 				return err
 			}
@@ -111,7 +111,7 @@ func newKeychainListCmd() *cobra.Command {
 		Use:   "list",
 		Short: "List signing identities in a managed keychain",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			rt, err := newRuntime("keychain.list", true)
+			rt, err := newRuntime("apple.keychain.list", true)
 			if err != nil {
 				return err
 			}
@@ -133,7 +133,7 @@ func newKeychainUnlockCmd() *cobra.Command {
 		Use:   "unlock",
 		Short: "Unlock the configured keychain for the current shell session",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			rt, err := newRuntime("keychain.unlock", true)
+			rt, err := newRuntime("apple.keychain.unlock", true)
 			if err != nil {
 				return err
 			}
@@ -157,14 +157,14 @@ type keychainCreateResult struct {
 	Team string `json:"team"`
 }
 
-func (r keychainCreateResult) SchemaName() string   { return "macforge.v1.keychain.create" }
+func (r keychainCreateResult) SchemaName() string   { return "macforge.v1.apple.keychain.create" }
 func (r keychainCreateResult) HumanLines() []string { return []string{"Created: " + r.Name, "Team:    " + r.Team} }
 
 type keychainDeleteResult struct {
 	Name string `json:"name"`
 }
 
-func (r keychainDeleteResult) SchemaName() string   { return "macforge.v1.keychain.delete" }
+func (r keychainDeleteResult) SchemaName() string   { return "macforge.v1.apple.keychain.delete" }
 func (r keychainDeleteResult) HumanLines() []string { return []string{"Deleted: " + r.Name} }
 
 type keychainListResult struct {
@@ -172,7 +172,7 @@ type keychainListResult struct {
 	Identities []security.Identity `json:"identities"`
 }
 
-func (r keychainListResult) SchemaName() string { return "macforge.v1.keychain.list" }
+func (r keychainListResult) SchemaName() string { return "macforge.v1.apple.keychain.list" }
 func (r keychainListResult) HumanLines() []string {
 	out := []string{"Keychain: " + r.Keychain}
 	if len(r.Identities) == 0 {
@@ -189,5 +189,5 @@ type keychainUnlockResult struct {
 	Name string `json:"name"`
 }
 
-func (r keychainUnlockResult) SchemaName() string   { return "macforge.v1.keychain.unlock" }
+func (r keychainUnlockResult) SchemaName() string   { return "macforge.v1.apple.keychain.unlock" }
 func (r keychainUnlockResult) HumanLines() []string { return []string{"Unlocked: " + r.Name} }

@@ -18,7 +18,7 @@ func newSignCmd() *cobra.Command {
 		Short: "Sign one or more macOS artifacts",
 		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			rt, err := newRuntime("sign", true)
+			rt, err := newRuntime("apple.sign", true)
 			if err != nil {
 				return err
 			}
@@ -47,7 +47,7 @@ type signResult struct {
 	Signed []signing.Result `json:"signed"`
 }
 
-func (r signResult) SchemaName() string { return "macforge.v1.sign" }
+func (r signResult) SchemaName() string { return "macforge.v1.apple.sign" }
 func (r signResult) HumanLines() []string {
 	if len(r.Signed) == 0 {
 		return []string{"No artifacts signed"}

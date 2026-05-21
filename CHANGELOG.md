@@ -17,6 +17,17 @@ SemVer.
 - **`keychain create` now adds the new keychain to the user's keychain search list.** Previously the `.keychain-db` file was created on disk but not registered, so `find-identity` and `codesign`'s automatic identity resolution couldn't see imported certs. Symmetric removal on `keychain delete`. ([#2](https://github.com/convergent-systems-co/macforge/issues/2))
 - **CRITICAL: audit log no longer leaks `Invocation.Redact` secrets.** Per-call-site secrets (keychain passwords, `--password`, ASC credentials) declared in `Invocation.Redact` are now masked from `probe_payload` BEFORE the event is written. Previously the Redact list became informational tags only; the raw payload (with passwords inline) was persisted to the JSONL audit log. ([#3](https://github.com/convergent-systems-co/macforge/issues/3))
 
+### Changed (breaking — CLI structure)
+
+- **All Apple-platform verbs moved under `macforge apple <verb>`.** Per [ADR-0017](docs/adr/0017-apple-command-namespace.md). Preparation for macheim merging in as a peer subtree. ([#14](https://github.com/convergent-systems-co/macforge/issues/14))
+  - `macforge sign` → `macforge apple sign`
+  - `macforge keychain create` → `macforge apple keychain create`
+  - `macforge identity create` → `macforge apple identity create`
+  - ... and the same for every other verb (`init`, `verify`, `package`, `notarize`, `publish`, `release`, `audit`).
+  - `macforge version` stays at the root (universal).
+  - JSON envelope `schema` field: `macforge.v1.sign` → `macforge.v1.apple.sign`; audit `command` field: `sign` → `apple.sign`. Same shape for every verb.
+  - Hard cutover; no backwards-compat aliases.
+
 ### Changed (breaking — audit log layout)
 
 - **Audit log moved to `~/.macforge/audit/<UTC-date-time>Z-<trace>.jsonl`, one file per `macforge` invocation.** Per [ADR-0016](docs/adr/0016-audit-log-per-invocation-user-home.md). ([#5](https://github.com/convergent-systems-co/macforge/issues/5))

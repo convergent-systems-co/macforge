@@ -9,7 +9,9 @@ import (
 	"testing"
 )
 
-func TestRoot_HelpListsAllVerbs(t *testing.T) {
+func TestRoot_HelpListsAppleAndVersion(t *testing.T) {
+	// Per ADR-0017, the root surface is just `apple` (today's verbs) and
+	// `version`. All Apple-platform verbs are nested under `apple`.
 	var buf bytes.Buffer
 	root := newRootCmd()
 	root.SetOut(&buf)
@@ -19,9 +21,26 @@ func TestRoot_HelpListsAllVerbs(t *testing.T) {
 		t.Fatalf("Execute: %v", err)
 	}
 	out := buf.String()
+	for _, top := range []string{"apple", "version"} {
+		if !strings.Contains(out, top) {
+			t.Errorf("--help output missing top-level command %q\n%s", top, out)
+		}
+	}
+}
+
+func TestApple_HelpListsAllVerbs(t *testing.T) {
+	var buf bytes.Buffer
+	root := newRootCmd()
+	root.SetOut(&buf)
+	root.SetErr(&buf)
+	root.SetArgs([]string{"apple", "--help"})
+	if err := root.Execute(); err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+	out := buf.String()
 	for _, verb := range []string{"init", "identity", "keychain", "sign", "package", "notarize", "verify", "publish", "release", "audit"} {
 		if !strings.Contains(out, verb) {
-			t.Errorf("--help output missing verb %q\n%s", verb, out)
+			t.Errorf("apple --help missing verb %q\n%s", verb, out)
 		}
 	}
 }
