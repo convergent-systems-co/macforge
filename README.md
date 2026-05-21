@@ -132,6 +132,8 @@ MacForge reads config in priority order (highest first):
 
 The global file holds identity-shaped fields (team, keychain, signing identity, ASC profile). The project-local file is optional and should carry only project-shaped fields (entitlements, package formats, publish target). See [ADR-0015](docs/adr/0015-single-global-config-xdg.md) for the field-by-field classification.
 
+The config layer enforces field-by-field rules at every load: `team` is required, and (unless `keychain.allow_nonstandard: true`) `keychain.name` must match `macforge-<TEAM>-<PURPOSE>` with the `<TEAM>` segment equal to top-level `team`. Run `macforge apple config validate` at any time to see a green/red checklist of every static rule plus runtime checks (env-var presence, keychain reachability). See [ADR-0019](docs/adr/0019-aggressive-config-validation.md) for the full validation contract.
+
 ## How do I run it?
 
 See [ADR-0015](docs/adr/0015-single-global-config-xdg.md) for the config
