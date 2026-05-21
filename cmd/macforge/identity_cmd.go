@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/convergent-systems-co/macforge/internal/apple/security"
-	mferrors "github.com/convergent-systems-co/macforge/internal/errors"
 	"github.com/convergent-systems-co/macforge/internal/identity"
 	"github.com/convergent-systems-co/macforge/internal/keychain"
 )
@@ -192,20 +191,6 @@ import it with: macforge identity import --file <cert.cer>`,
 	return cmd
 }
 
-// stubSub returns a cobra.Command that always errors with MF-CONFIG-001
-// "not yet implemented". Used for subverbs deferred past v0.1.
-// Note: this is also referenced from keychain_cmd.go before Task 14's
-// replacement; once both files are at their post-Task-15 versions, this
-// is the sole definition of stubSub in the package.
-func stubSub(use, short string) *cobra.Command {
-	return &cobra.Command{
-		Use:   use,
-		Short: short,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return mferrors.NewConfig("MF-CONFIG-001", cmd.CommandPath(), "not yet implemented")
-		},
-	}
-}
 
 func newIdentityImportCmd() *cobra.Command {
 	var file, keychainName, p12Password string

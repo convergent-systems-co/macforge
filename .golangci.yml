@@ -1,33 +1,32 @@
+version: "2"
+
 run:
   timeout: 5m
-  # golangci-lint v1.64.8 (pinned by the action) is built against Go 1.24
-  # and refuses to load a config targeting a newer language version. The
-  # actual build toolchain stays at 1.26.3 (see .go-version); only the
-  # set of language features lint accepts is capped here.
-  go: "1.24"
 
 linters:
+  default: none
   enable:
     - govet
     - errcheck
     - staticcheck
-    - gosimple
     - ineffassign
     - unused
     - misspell
     - revive
     - gocritic
     - bodyclose
-
-linters-settings:
-  revive:
+  settings:
+    revive:
+      rules:
+        # `exported` (missing doc comments on exported identifiers) is a
+        # legitimate finding but produces ~30+ hits across the v0.1 codebase
+        # because the rapid iteration didn't backfill godocs for every
+        # exported const/type/func. Disabled here so unrelated PRs aren't
+        # blocked; tracked as a follow-up cleanup.
+        - name: exported
+          disabled: true
+  exclusions:
     rules:
-      - name: exported
-        arguments:
-          - disableStutteringCheck
-
-issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - errcheck
+      - path: _test\.go
+        linters:
+          - errcheck

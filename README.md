@@ -30,19 +30,20 @@ v0.1 covers the foundation through sign+verify. See
 [`GOALS.md`](GOALS.md) for the full scope and `docs/adr/` for every
 load-bearing decision.
 
-| Verb                       | v0.1 status |
-|----------------------------|-------------|
-| `macforge apple init`            | ✓           |
-| `macforge apple keychain *`      | ✓           |
-| `macforge apple identity import` | ✓           |
-| `macforge apple identity list`   | ✓           |
-| `macforge apple identity status` | ✓           |
-| `macforge apple sign`            | ✓           |
-| `macforge apple verify`          | ✓           |
-| `macforge apple package`         | stub (v0.2) |
-| `macforge apple notarize`        | stub (v0.2) |
-| `macforge apple publish`         | stub (v0.2) |
-| `macforge apple release`         | stub (v0.2) |
+| Verb                              | v0.1 status |
+|-----------------------------------|-------------|
+| `macforge apple init`             | ✓           |
+| `macforge apple config validate`  | ✓           |
+| `macforge apple keychain *`       | ✓           |
+| `macforge apple identity import`  | ✓           |
+| `macforge apple identity list`    | ✓           |
+| `macforge apple identity status`  | ✓           |
+| `macforge apple sign`             | ✓           |
+| `macforge apple verify`           | ✓           |
+| `macforge apple package`          | stub (v0.2) |
+| `macforge apple notarize`         | stub (v0.2) |
+| `macforge apple publish`          | stub (v0.2) |
+| `macforge apple release`          | stub (v0.2) |
 
 ## Workstation (`macforge workstation <verb>`)
 

@@ -1,0 +1,1 @@
+{"tool":"codesign","args":["--sign","Developer ID Application: ACME Inc. (XYZ1234567)","--keychain","macforge-XYZ1234567-signing","--options","runtime","--timestamp","--entitlements","./Entitlements.plist","--verbose","./build/MyApp.app"]}

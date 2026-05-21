@@ -23,6 +23,7 @@ dotfiles, zsh, macOS defaults).`,
 	}
 	cmd.AddCommand(
 		newInitCmd(),
+		newConfigCmd(),
 		newIdentityCmd(),
 		newKeychainCmd(),
 		newSignCmd(),
