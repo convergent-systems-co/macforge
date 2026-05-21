@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Convergent Systems Co.
 
-// Package errors provides MacForge's structured error model: stable MF-* codes,
+// Package mferrors provides MacForge's structured error model: stable MF-* codes,
 // sentinel roots per subsystem, and an Error type carrying op/hint/details for
 // the dual human + JSON output envelope.
 //
