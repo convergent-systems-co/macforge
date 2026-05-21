@@ -110,11 +110,12 @@ manually retire the old cert (signing tools pick by name, both work).`,
 					Email:        email,
 					Country:      country,
 				},
-				Keychain:        keychainName,
-				OutPrefix:       outPrefix,
-				P12Password:     p12Password,
-				ArchivePath:     archivePath,
-				ArchivePassword: archivePassword,
+				Keychain:             keychainName,
+				OutPrefix:            outPrefix,
+				P12Password:          p12Password,
+				ArchivePath:          archivePath,
+				ArchivePassword:      archivePassword,
+				KeychainUnlockSecret: rt.cfg.Keychain.Unlock,
 			})
 			return rt.emit(identityRotateResult{Result: result}, runErr)
 		},
@@ -172,9 +173,10 @@ import it with: macforge identity import --file <cert.cer>`,
 					Email:        email,
 					Country:      country,
 				},
-				Keychain:    keychainName,
-				OutPrefix:   outPrefix,
-				P12Password: p12Password,
+				Keychain:             keychainName,
+				OutPrefix:            outPrefix,
+				P12Password:          p12Password,
+				KeychainUnlockSecret: rt.cfg.Keychain.Unlock,
 			})
 			return rt.emit(identityCreateResult{Result: result}, runErr)
 		},
@@ -220,9 +222,10 @@ func newIdentityImportCmd() *cobra.Command {
 			}
 			svc := identity.New(security.New(newRunnerWithAudit(rt)))
 			runErr := svc.Import(cmd.Context(), identity.ImportOptions{
-				File:        file,
-				Keychain:    keychainName,
-				P12Password: p12Password,
+				File:                 file,
+				Keychain:             keychainName,
+				P12Password:          p12Password,
+				KeychainUnlockSecret: rt.cfg.Keychain.Unlock,
 			})
 			return rt.emit(identityImportResult{File: file, Keychain: keychainName}, runErr)
 		},
