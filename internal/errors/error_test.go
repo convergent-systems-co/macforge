@@ -85,5 +85,13 @@ func TestCodes_FollowFormat(t *testing.T) {
 		if len(parts) != 3 {
 			t.Fatalf("code %q does not match MF-<SUBSYSTEM>-NNN", code)
 		}
+		if len(parts[2]) != 3 {
+			t.Fatalf("code %q: trailing segment %q must be exactly 3 chars", code, parts[2])
+		}
+		for _, r := range parts[2] {
+			if r < '0' || r > '9' {
+				t.Fatalf("code %q: trailing segment %q must be 3 digits", code, parts[2])
+			}
+		}
 	}
 }

@@ -25,7 +25,10 @@ func (e *Error) Error() string {
 	return fmt.Sprintf("[%s] %s: %s", e.Code, e.Op, e.Msg)
 }
 
-// Unwrap returns the underlying cause for errors.Unwrap and errors.Is.
+// Unwrap returns the wrapped cause (if set) for errors.Unwrap, or the
+// subsystem sentinel when no cause is attached. The Is method below
+// short-circuits sentinel matching so callers don't have to rely on the
+// unwrap chain.
 func (e *Error) Unwrap() error {
 	if e.Cause != nil {
 		return e.Cause
