@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/polliard/macheim/internal/config"
+	"github.com/polliard/macheim/internal/output"
 )
 
 // newTestRender constructs a render bound to a bytes.Buffer. Because the
@@ -111,7 +112,7 @@ func TestRender_ColorRespected(t *testing.T) {
 	r.row("bad", Result{OK: false, Remediation: "fix"})
 	r.summary(1)
 	got := buf.String()
-	for _, want := range []string{ansiGreen, ansiRed, ansiReset} {
+	for _, want := range []string{output.AnsiGreen, output.AnsiRed, output.AnsiReset} {
 		if !strings.Contains(got, want) {
 			t.Errorf("output should contain ANSI %q; got %q", want, got)
 		}
@@ -125,7 +126,7 @@ func TestRender_NoColor_StripsANSI(t *testing.T) {
 	r.row("bad", Result{OK: false, Remediation: "fix"})
 	r.summary(1)
 	got := buf.String()
-	for _, banned := range []string{ansiGreen, ansiRed, ansiReset} {
+	for _, banned := range []string{output.AnsiGreen, output.AnsiRed, output.AnsiReset} {
 		if strings.Contains(got, banned) {
 			t.Errorf("output should not contain ANSI %q; got %q", banned, got)
 		}

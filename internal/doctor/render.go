@@ -3,20 +3,14 @@ package doctor
 import (
 	"fmt"
 	"io"
-	"os"
 
 	"github.com/polliard/macheim/internal/config"
-	"golang.org/x/term"
-)
-
-const (
-	ansiGreen = "\033[32m"
-	ansiRed   = "\033[31m"
-	ansiReset = "\033[0m"
+	"github.com/polliard/macheim/internal/output"
 )
 
 // render is the per-Run rendering state. One instance is constructed when
-// Run begins and used for every row plus the summary line.
+// Run begins and used for every row plus the summary line. Holds the
+// per-Run booleans derived from Runtime so they're computed once.
 type render struct {
 	w        io.Writer
 	quiet    bool
@@ -29,67 +23,41 @@ func newRender(rt *config.Runtime, w io.Writer) *render {
 		w:        w,
 		quiet:    rt.Quiet,
 		verbose:  rt.Verbose,
-		useColor: shouldUseColor(rt, w),
+		useColor: output.UseColor(rt.NoColor, w),
 	}
 }
 
-// shouldUseColor returns true when ANSI escapes should be emitted: never
-// when rt.NoColor is set, and only when the writer is a real terminal.
-// When w is not an *os.File (test bytes.Buffer, pipe, etc.) treat as
-// non-TTY so test output stays deterministic.
-func shouldUseColor(rt *config.Runtime, w io.Writer) bool {
-	if rt.NoColor {
-		return false
-	}
-	f, ok := w.(*os.File)
-	if !ok {
-		return false
-	}
-	return term.IsTerminal(int(f.Fd()))
-}
-
-func (r *render) colorize(code, s string) string {
-	if !r.useColor {
-		return s
-	}
-	return code + s + ansiReset
-}
-
-func (r *render) printf(format string, args ...any) {
-	_, _ = fmt.Fprintf(r.w, format, args...)
-}
-
-// row prints one check's outcome. Pass rows are suppressed under --quiet;
-// fail rows always print. --verbose adds an indented probe line.
+// row prints one check's outcome via internal/output, plus the doctor-
+// specific "→ remediation" trailing line on failure. Pass rows are
+// suppressed under --quiet; fail rows always print.
 func (r *render) row(name string, res Result) {
+	probe := ""
+	if res.Probe != "" {
+		probe = "probed: " + res.Probe
+	}
 	if res.OK {
 		if r.quiet {
 			return
 		}
-		r.printf("%s %s\n", r.colorize(ansiGreen, "✓"), name)
-		if r.verbose && res.Probe != "" {
-			r.printf("   probed: %s\n", res.Probe)
-		}
+		output.Row(r.w, r.useColor, r.verbose, output.MarkerOK, name, "", probe)
 		return
 	}
-	r.printf("%s %s\n", r.colorize(ansiRed, "✗"), name)
-	if r.verbose && res.Probe != "" {
-		r.printf("   probed: %s\n", res.Probe)
-	}
+	output.Row(r.w, r.useColor, r.verbose, output.MarkerFail, name, "", probe)
 	if res.Remediation != "" {
-		r.printf("   → %s\n", res.Remediation)
+		_, _ = fmt.Fprintf(r.w, "   → %s\n", res.Remediation)
 	}
 }
 
-// summary prints the final line. Always emitted regardless of --quiet.
+// summary prints the final line via internal/output. Always emitted
+// regardless of --quiet.
 func (r *render) summary(failed int) {
 	if failed == 0 {
-		r.printf("%s\n", r.colorize(ansiGreen, "All checks passed."))
+		output.Summary(r.w, r.useColor, output.MarkerOK, "All checks passed.")
 		return
 	}
 	noun := "checks"
 	if failed == 1 {
 		noun = "check"
 	}
-	r.printf("%s\n", r.colorize(ansiRed, fmt.Sprintf("%d %s failed.", failed, noun)))
+	output.Summary(r.w, r.useColor, output.MarkerFail, fmt.Sprintf("%d %s failed.", failed, noun))
 }
