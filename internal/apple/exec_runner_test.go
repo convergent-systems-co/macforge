@@ -58,8 +58,8 @@ func TestExecRunner_Timeout(t *testing.T) {
 // Per Common.md §4 and ADR-0012, any secret declared in Invocation.Redact MUST
 // NOT appear in the audit log's probe_payload.
 func TestExecRunner_RedactsInvocationSecrets(t *testing.T) {
-	dir := t.TempDir()
-	w, err := audit.NewWriter(dir, audit.NewRedactor(nil)) // writer has NO secrets known
+	path := filepath.Join(t.TempDir(), "audit.jsonl")
+	w, err := audit.NewWriter(path, audit.NewRedactor(nil)) // writer has NO secrets known
 	if err != nil {
 		t.Fatalf("NewWriter: %v", err)
 	}
@@ -78,11 +78,7 @@ func TestExecRunner_RedactsInvocationSecrets(t *testing.T) {
 		t.Fatalf("Run: %v", err)
 	}
 
-	files, _ := filepath.Glob(filepath.Join(dir, "*.jsonl"))
-	if len(files) != 1 {
-		t.Fatalf("expected 1 audit file, got %d", len(files))
-	}
-	contents, err := os.ReadFile(files[0])
+	contents, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("ReadFile: %v", err)
 	}
