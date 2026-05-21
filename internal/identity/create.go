@@ -16,6 +16,7 @@ import (
 	"software.sslmate.com/src/go-pkcs12"
 
 	mferrors "github.com/convergent-systems-co/macforge/internal/errors"
+	"github.com/convergent-systems-co/macforge/internal/keychain"
 )
 
 // CreateOptions describes a Create call. OutPrefix is a base path:
@@ -24,10 +25,12 @@ import (
 // passphrase is generated and returned in the result for the caller to
 // surface to the user once.
 type CreateOptions struct {
-	Subject     CSRSubject
-	Keychain    string // target macforge keychain (must already exist)
-	OutPrefix   string // file path prefix; .csr and .p12 are appended
-	P12Password string // optional; if empty, a random passphrase is generated
+	Subject              CSRSubject
+	Keychain             string // target macforge keychain (must already exist)
+	OutPrefix            string // file path prefix; .csr and .p12 are appended
+	P12Password          string // optional; if empty, a random passphrase is generated
+	KeychainUnlockSecret string // env:VAR or keyring: ref for the KEYCHAIN master password;
+	                            // required to set the partition-list ACL on the new key (issue #11)
 }
 
 // CreateResult is the typed outcome of Create.
@@ -145,6 +148,19 @@ func (s *Service) Create(ctx context.Context, opts CreateOptions) (CreateResult,
 		_ = os.Remove(csrPath)
 		_ = os.Remove(p12Path)
 		return CreateResult{}, err
+	}
+
+	// Grant non-interactive codesign access to the freshly imported key.
+	// Without this, security find-identity and codesign treat the key as
+	// inaccessible and macforge sign returns MF-SIGN-002. Issue #11.
+	if opts.KeychainUnlockSecret != "" {
+		kcPW, err := keychain.ResolveSecret(opts.KeychainUnlockSecret)
+		if err != nil {
+			return CreateResult{}, err
+		}
+		if err := s.sec.SetKeyPartitionList(ctx, opts.Keychain, kcPW, defaultPartitionList); err != nil {
+			return CreateResult{}, err
+		}
 	}
 
 	return CreateResult{

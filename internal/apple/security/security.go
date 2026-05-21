@@ -131,6 +131,42 @@ func argsFindIdentity(keychain, policy string) []string {
 	return []string{"find-identity", "-p", policy, "-v", keychain}
 }
 
+// SetKeyPartitionList sets the partition-list ACL on every private key in
+// the keychain to the given partitions (a comma-separated list of partition
+// prefixes, e.g. "apple-tool:,apple:"). Required after importing any key
+// that will be used for non-interactive signing — macOS's default partition
+// list blocks find-identity and codesign from using the key without an
+// interactive password prompt.
+//
+// keychainPassword is the keychain's master password (NOT the .p12 password
+// from the import). Added to Invocation.Redact so the audit log doesn't
+// capture it.
+//
+// Equivalent: `security set-key-partition-list -S <partitions> -s -k <pw> <keychain>`.
+func (c *Client) SetKeyPartitionList(ctx context.Context, keychain, keychainPassword, partitions string) error {
+	res, err := c.r.Run(ctx, apple.Invocation{
+		Tool: "security",
+		Args: []string{
+			"set-key-partition-list",
+			"-S", partitions,
+			"-s",
+			"-k", keychainPassword,
+			keychain,
+		},
+		Redact: []string{keychainPassword},
+	})
+	if err != nil {
+		return err
+	}
+	if res.ExitCode != 0 {
+		return mferrors.NewKeychain(mferrors.CodeKeychainLocked,
+			"security.SetKeyPartitionList",
+			"security set-key-partition-list failed: "+strings.TrimSpace(string(res.Stderr)),
+			mferrors.WithDetails(map[string]any{"keychain": keychain, "exit": res.ExitCode}))
+	}
+	return nil
+}
+
 // HasKeychain reports whether the named keychain exists and is reachable
 // by `security`. Wraps `security show-keychain-info <name>`, which exits
 // non-zero when the keychain is missing. Use to pre-flight import / sign

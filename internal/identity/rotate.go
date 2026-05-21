@@ -15,12 +15,13 @@ import (
 // If ArchivePath is empty, no archive is written (use Create directly when
 // archival is not wanted).
 type RotateOptions struct {
-	Subject         CSRSubject
-	Keychain        string
-	OutPrefix       string // new identity outputs; <prefix>.csr and <prefix>.p12
-	P12Password     string // new identity .p12 password (optional)
-	ArchivePath     string // existing identities archive; if "" no archive
-	ArchivePassword string // archive .p12 password (optional)
+	Subject              CSRSubject
+	Keychain             string
+	OutPrefix            string // new identity outputs; <prefix>.csr and <prefix>.p12
+	P12Password          string // new identity .p12 password (optional)
+	ArchivePath          string // existing identities archive; if "" no archive
+	ArchivePassword      string // archive .p12 password (optional)
+	KeychainUnlockSecret string // env:VAR or keyring: ref for keychain password (issue #11)
 }
 
 // RotateResult is the typed outcome.
@@ -66,10 +67,11 @@ func (s *Service) Rotate(ctx context.Context, opts RotateOptions) (RotateResult,
 	}
 
 	created, err := s.Create(ctx, CreateOptions{
-		Subject:     opts.Subject,
-		Keychain:    opts.Keychain,
-		OutPrefix:   opts.OutPrefix,
-		P12Password: opts.P12Password,
+		Subject:              opts.Subject,
+		Keychain:             opts.Keychain,
+		OutPrefix:            opts.OutPrefix,
+		P12Password:          opts.P12Password,
+		KeychainUnlockSecret: opts.KeychainUnlockSecret,
 	})
 	if err != nil {
 		return result, err
