@@ -35,10 +35,13 @@ type Result struct {
 	Timestamp       bool   `json:"timestamp"`
 }
 
-// Sign locates the signing identity for cfg.Team in cfg.Keychain.Name, then
-// runs codesign with the configured options.
+// Sign locates the signing identity for cfg.Team in the resolved keychain
+// (config.ResolveKeychainName), then runs codesign with the configured
+// options. See #13: callers MUST go through ResolveKeychainName so the
+// keychain name never disagrees with cfg.Team between Load and Sign.
 func (s *Service) Sign(ctx context.Context, cfg *config.Config, artifact string) (Result, error) {
-	ids, err := s.sec.FindIdentities(ctx, cfg.Keychain.Name, "codesigning")
+	keychainName := config.ResolveKeychainName(cfg)
+	ids, err := s.sec.FindIdentities(ctx, keychainName, "codesigning")
 	if err != nil {
 		return Result{}, err
 	}
@@ -49,7 +52,7 @@ func (s *Service) Sign(ctx context.Context, cfg *config.Config, artifact string)
 
 	opts := codesign.SignOptions{
 		IdentityCN:      id.CommonName,
-		Keychain:        cfg.Keychain.Name,
+		Keychain:        keychainName,
 		HardenedRuntime: cfg.Sign.HardenedRuntime,
 		Timestamp:       cfg.Sign.Timestamp,
 		Entitlements:    cfg.Sign.Entitlements,
