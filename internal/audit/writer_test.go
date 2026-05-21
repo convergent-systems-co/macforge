@@ -15,31 +15,27 @@ import (
 
 func TestWriter_AppendsJSONL(t *testing.T) {
 	dir := t.TempDir()
-	w, err := NewWriter(dir, NewRedactor([]string{"secret"}))
+	path := filepath.Join(dir, "test.jsonl")
+	w, err := NewWriter(path, NewRedactor([]string{"secret"}))
 	if err != nil {
 		t.Fatalf("NewWriter: %v", err)
 	}
 	defer w.Close()
 
 	ev := Event{
-		Chronon: time.Date(2026, 5, 21, 14, 30, 22, int(481*time.Millisecond), time.UTC),
-		Trace:   "01HVQK",
-		Cwd:     "/work",
-		Actor:   ActorMacforge,
-		Kind:    KindInvocationAttempt,
-		Probe:   "codesign",
+		Chronon:      time.Date(2026, 5, 21, 14, 30, 22, int(481*time.Millisecond), time.UTC),
+		Trace:        "01HVQK",
+		Cwd:          "/work",
+		Actor:        ActorMacforge,
+		Kind:         KindInvocationAttempt,
+		Probe:        "codesign",
 		ProbePayload: "--password secret --sign id",
 	}
 	if err := w.Write(ev); err != nil {
 		t.Fatalf("Write: %v", err)
 	}
 
-	files, _ := filepath.Glob(filepath.Join(dir, "*.jsonl"))
-	if len(files) != 1 {
-		t.Fatalf("expected 1 file, got %d", len(files))
-	}
-
-	f, _ := os.Open(files[0])
+	f, _ := os.Open(path)
 	defer f.Close()
 	sc := bufio.NewScanner(f)
 	sc.Scan()
@@ -64,9 +60,12 @@ func TestWriter_AppendsJSONL(t *testing.T) {
 	}
 }
 
-func TestWriter_DailyRotation(t *testing.T) {
+func TestWriter_AllEventsAppendToSameFile(t *testing.T) {
+	// Per ADR-0016: per-invocation Writer, no rotation. Multiple events
+	// land in the SAME file regardless of chronon.
 	dir := t.TempDir()
-	w, err := NewWriter(dir, NewRedactor(nil))
+	path := filepath.Join(dir, "single.jsonl")
+	w, err := NewWriter(path, NewRedactor(nil))
 	if err != nil {
 		t.Fatalf("NewWriter: %v", err)
 	}
@@ -83,31 +82,54 @@ func TestWriter_DailyRotation(t *testing.T) {
 	}
 
 	files, _ := filepath.Glob(filepath.Join(dir, "*.jsonl"))
-	if len(files) != 2 {
-		t.Fatalf("expected 2 daily files, got %d: %v", len(files), files)
+	if len(files) != 1 {
+		t.Fatalf("expected 1 file (no rotation), got %d: %v", len(files), files)
+	}
+
+	b, _ := os.ReadFile(path)
+	lines := strings.Split(strings.TrimRight(string(b), "\n"), "\n")
+	if len(lines) != 2 {
+		t.Fatalf("expected 2 lines in single file, got %d", len(lines))
 	}
 }
 
-func TestWriter_ZeroTimeChrononUsesToday(t *testing.T) {
+func TestWriter_ZeroTimeChrononPatched(t *testing.T) {
+	// Zero-time Chronon should be filled before serialization so the
+	// resulting line has a real timestamp.
 	dir := t.TempDir()
-	w, err := NewWriter(dir, NewRedactor(nil))
+	path := filepath.Join(dir, "z.jsonl")
+	w, err := NewWriter(path, NewRedactor(nil))
 	if err != nil {
 		t.Fatalf("NewWriter: %v", err)
 	}
 	defer w.Close()
 
-	// Chronon is the zero value.
 	if err := w.Write(Event{Trace: "T1", Actor: ActorMacforge, Kind: KindSignal}); err != nil {
 		t.Fatalf("Write: %v", err)
 	}
 
-	files, _ := filepath.Glob(filepath.Join(dir, "*.jsonl"))
-	if len(files) != 1 {
-		t.Fatalf("expected 1 file, got %d: %v", len(files), files)
+	b, _ := os.ReadFile(path)
+	var got Event
+	if err := json.Unmarshal(b[:len(b)-1], &got); err != nil {
+		t.Fatalf("unmarshal: %v\n%s", err, string(b))
 	}
-	today := time.Now().UTC().Format("2006-01-02")
-	if !strings.HasSuffix(files[0], today+".jsonl") {
-		t.Fatalf("file %s did not match today's date %s", files[0], today)
+	if got.Chronon.IsZero() {
+		t.Fatalf("Chronon was not patched; line: %s", string(b))
+	}
+	if got.Chronon.Year() == 1 {
+		t.Fatalf("Chronon = %v; want a real timestamp, not 0001-01-01", got.Chronon)
+	}
+}
+
+func TestWriter_Path(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "p.jsonl")
+	w, err := NewWriter(path, NewRedactor(nil))
+	if err != nil {
+		t.Fatalf("NewWriter: %v", err)
+	}
+	defer w.Close()
+	if w.Path() != path {
+		t.Fatalf("Path = %q, want %q", w.Path(), path)
 	}
 }
 

@@ -17,6 +17,15 @@ SemVer.
 - **`keychain create` now adds the new keychain to the user's keychain search list.** Previously the `.keychain-db` file was created on disk but not registered, so `find-identity` and `codesign`'s automatic identity resolution couldn't see imported certs. Symmetric removal on `keychain delete`. ([#2](https://github.com/convergent-systems-co/macforge/issues/2))
 - **CRITICAL: audit log no longer leaks `Invocation.Redact` secrets.** Per-call-site secrets (keychain passwords, `--password`, ASC credentials) declared in `Invocation.Redact` are now masked from `probe_payload` BEFORE the event is written. Previously the Redact list became informational tags only; the raw payload (with passwords inline) was persisted to the JSONL audit log. ([#3](https://github.com/convergent-systems-co/macforge/issues/3))
 
+### Changed (breaking — audit log layout)
+
+- **Audit log moved to `~/.macforge/audit/<UTC-date-time>Z-<trace>.jsonl`, one file per `macforge` invocation.** Per [ADR-0016](docs/adr/0016-audit-log-per-invocation-user-home.md). ([#5](https://github.com/convergent-systems-co/macforge/issues/5))
+  - **Was:** `./.macforge/audit/<UTC-date>.jsonl` (project-local, daily-rotated).
+  - **Now:** `~/.macforge/audit/2026-05-21T15-30-22Z-<26char-ULID>.jsonl` (user-home, per-invocation).
+  - Format and schema (JSONL, ADR-0012 vocabulary) unchanged; only location and rotation changed.
+
+  **Migration:** existing `.macforge/` directories in project dirs are now unused; safe to delete. Existing audit files at the old path will no longer be appended to.
+
 ### Changed (breaking — config layout)
 
 - **Config layered: global at XDG path + optional project override.** Per [ADR-0015](docs/adr/0015-single-global-config-xdg.md). ([#1](https://github.com/convergent-systems-co/macforge/issues/1), [#4](https://github.com/convergent-systems-co/macforge/issues/4))
