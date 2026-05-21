@@ -2,7 +2,7 @@
 #
 # Run `make` (or `make help`) to list targets.
 
-.PHONY: help clean build test
+.PHONY: help clean build test embed-sync
 
 BINARY   := macforge
 PKG      := ./cmd/macforge
@@ -20,7 +20,7 @@ clean:  ## Remove build artifacts (./bin, *.test, coverage.out)
 	rm -rf $(BIN_DIR) coverage.out
 	@find . -name '*.test' -not -path './.git/*' -delete 2>/dev/null || true
 
-build:  ## Build ./bin/macforge with the current git-SHA version stamp
+build: embed-sync  ## Build ./bin/macforge with the current git-SHA version stamp
 	@mkdir -p $(BIN_DIR)
 	go build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $(BIN_DIR)/$(BINARY) $(PKG)
 	@echo "Built: $(BIN_DIR)/$(BINARY) ($(VERSION))"
@@ -28,3 +28,8 @@ build:  ## Build ./bin/macforge with the current git-SHA version stamp
 test:  ## Run unit + integration tests with -race
 	go test -race ./...
 	go test -race -tags=integration ./...
+
+embed-sync:  ## Sync examples/workstation/Brewfile -> internal/workstation/embedded/configs/Brewfile
+	@mkdir -p internal/workstation/embedded/configs
+	@cp examples/workstation/Brewfile internal/workstation/embedded/configs/Brewfile
+	@echo "embed-sync: examples/workstation/Brewfile -> internal/workstation/embedded/configs/Brewfile"
