@@ -129,7 +129,7 @@ func dispatchLocalToRemote(rt *config.Runtime, module string) error {
 			return fmt.Errorf("brew local-to-remote: %w", err)
 		}
 	case "dotfiles":
-		if err := dotfiles.UpdateLocalToRemote(rt); err != nil {
+		if _, err := dotfiles.UpdateLocalToRemote(rt); err != nil {
 			return fmt.Errorf("dotfiles local-to-remote: %w", err)
 		}
 	case "defaults":
