@@ -1,20 +1,24 @@
 package cmd
 
 import (
+	"context"
+
+	"github.com/polliard/macheim/internal/brew"
 	"github.com/polliard/macheim/internal/config"
 	"github.com/urfave/cli/v3"
 )
 
 func brewCommand(rt *config.Runtime) *cli.Command {
-	_ = rt
 	return &cli.Command{
 		Name:  "brew",
 		Usage: "Homebrew operations",
 		Commands: []*cli.Command{
 			{
-				Name:   "install",
-				Usage:  "Install Homebrew itself",
-				Action: notImplemented("brew install", 12),
+				Name:  "install",
+				Usage: "Install Homebrew itself",
+				Action: func(_ context.Context, _ *cli.Command) error {
+					return brew.Install(rt)
+				},
 			},
 			{
 				Name:   "bundle",
