@@ -44,6 +44,45 @@ load-bearing decision.
 | `macforge apple publish`         | stub (v0.2) |
 | `macforge apple release`         | stub (v0.2) |
 
+## Workstation (`macforge workstation <verb>`)
+
+Mac workstation bootstrap and sync: Homebrew, dotfiles, zsh, macOS
+defaults. Originated as `github.com/polliard/macheim`; subtree-merged
+into macforge on 2026-05-21 preserving 73 commits of upstream history
+(`git log internal/workstation/`).
+
+| Verb                                          | Status                          |
+|-----------------------------------------------|---------------------------------|
+| `macforge workstation status`                 | ✓                               |
+| `macforge workstation doctor`                 | ✓                               |
+| `macforge workstation brew install`           | ✓                               |
+| `macforge workstation brew bundle`            | ✓                               |
+| `macforge workstation dotfiles apply`         | ✓                               |
+| `macforge workstation update local-to-remote` | ✓ (brew, dotfiles)              |
+| `macforge workstation update remote-to-local` | ✓ (brew only — dotfiles t.b.d.) |
+| `macforge workstation bootstrap`              | stub                            |
+| `macforge workstation zsh setup`              | stub                            |
+| `macforge workstation macos defaults`         | stub                            |
+| `macforge workstation downloads`              | stub                            |
+
+Workstation-specific globals (on top of macforge's `--config`, `--output`,
+`--dry-run`, `--verbose`, `--no-color`):
+
+| Flag                      | Env            | Purpose                       |
+|---------------------------|----------------|-------------------------------|
+| `--workstation-repo PATH` | `MACHEIM_REPO`\* | path to your workstation repo |
+| `--quiet`, `-q`           |                | suppress non-error output     |
+| `--yes`, `-y`             |                | skip confirmation prompts     |
+
+\* The env var is currently `MACHEIM_REPO` (carried from macheim). It
+will become `MACFORGE_WORKSTATION_REPO` once viper layering wires
+through `workstation.repo_path` in `~/.config/macforge/macforge.yaml`.
+See [ADR-0017](docs/adr/0017-apple-command-namespace.md) and
+[ADR-0018](docs/adr/0018-peer-subtree-named-workstation.md).
+
+Sample artifacts: [`examples/workstation/Brewfile`](examples/workstation/Brewfile)
+and [`examples/workstation/config.yaml`](examples/workstation/config.yaml).
+
 ## Quick start
 
 ```bash
