@@ -29,11 +29,11 @@ type Row struct {
 }
 
 // DefaultSections returns the canonical list of sections, in display order.
-// Drift placeholders land in a follow-up commit on the same PR.
 func DefaultSections() []Section {
 	return []Section{
 		brewSection(),
 		repoSection(),
+		driftSection(),
 	}
 }
 

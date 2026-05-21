@@ -139,3 +139,19 @@ func repoRow(rt *config.Runtime, s repoSeam) Row {
 		Verbose: fmt.Sprintf("%s — %s", subject, isoDate),
 	}
 }
+
+// driftSection emits placeholder rows for each module's drift detector,
+// pointing at the issues that will land real implementations. Rows are
+// Hidden so --quiet collapses them out.
+func driftSection() Section {
+	return Section{
+		Name: "drift",
+		Run: func(_ *config.Runtime) []Row {
+			return []Row{
+				{Marker: output.MarkerUnknown, Name: "drift:brew", Detail: "not implemented (see #14)", Hidden: true},
+				{Marker: output.MarkerUnknown, Name: "drift:dotfiles", Detail: "not implemented (see #17 / #18)", Hidden: true},
+				{Marker: output.MarkerUnknown, Name: "drift:macos", Detail: "deferred", Hidden: true},
+			}
+		},
+	}
+}

@@ -162,3 +162,23 @@ func TestRepoRow(t *testing.T) {
 		})
 	}
 }
+
+func TestDriftSection_EmitsThreeHiddenRows(t *testing.T) {
+	t.Parallel()
+	rows := driftSection().Run(&config.Runtime{})
+	if len(rows) != 3 {
+		t.Fatalf("expected 3 drift rows, got %d", len(rows))
+	}
+	wantNames := []string{"drift:brew", "drift:dotfiles", "drift:macos"}
+	for i, want := range wantNames {
+		if rows[i].Name != want {
+			t.Errorf("rows[%d].Name = %q, want %q", i, rows[i].Name, want)
+		}
+		if !rows[i].Hidden {
+			t.Errorf("rows[%d] should be Hidden:true (collapsed under --quiet)", i)
+		}
+		if rows[i].Marker != output.MarkerUnknown {
+			t.Errorf("rows[%d].Marker = %v, want MarkerUnknown", i, rows[i].Marker)
+		}
+	}
+}
