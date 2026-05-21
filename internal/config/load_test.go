@@ -6,6 +6,7 @@ package config_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/convergent-systems-co/macforge/internal/config"
@@ -179,6 +180,112 @@ func TestLoad_DefaultGlobalHonorsXDG(t *testing.T) {
 	}
 	if cfg.Team != "ZZZ0000000" {
 		t.Fatalf("Team = %q, want ZZZ0000000 (XDG-defaulted global)", cfg.Team)
+	}
+}
+
+func TestLoad_RejectsMissingTeam(t *testing.T) {
+	dir := t.TempDir()
+	global := filepath.Join(dir, "global.yaml")
+	writeYAML(t, global, `
+version: 1
+`)
+	_, err := config.Load(config.LoadOptions{
+		GlobalPath:  global,
+		ProjectPath: filepath.Join(dir, "no-project.yaml"),
+	})
+	if err == nil {
+		t.Fatal("expected error for missing team, got nil")
+	}
+	if !strings.Contains(err.Error(), "team") {
+		t.Fatalf("error should mention team: %v", err)
+	}
+}
+
+func TestLoad_RejectsBadKeychainNameRegex(t *testing.T) {
+	dir := t.TempDir()
+	global := filepath.Join(dir, "global.yaml")
+	writeYAML(t, global, `
+version: 1
+team: XYZ1234567
+keychain:
+  name: definitely-not-a-macforge-name
+`)
+	_, err := config.Load(config.LoadOptions{
+		GlobalPath:  global,
+		ProjectPath: filepath.Join(dir, "no-project.yaml"),
+	})
+	if err == nil {
+		t.Fatal("expected error for malformed keychain.name, got nil")
+	}
+}
+
+func TestLoad_RejectsTeamMismatch(t *testing.T) {
+	// The #13 bug: keychain.name says one team, top-level team says another.
+	dir := t.TempDir()
+	global := filepath.Join(dir, "global.yaml")
+	writeYAML(t, global, `
+version: 1
+team: XYZ1234567
+keychain:
+  name: macforge-ABC9876543-signing
+`)
+	_, err := config.Load(config.LoadOptions{
+		GlobalPath:  global,
+		ProjectPath: filepath.Join(dir, "no-project.yaml"),
+	})
+	if err == nil {
+		t.Fatal("expected error for team/keychain.name mismatch, got nil")
+	}
+	// Hint should mention the team-segment vs cfg.team disagreement.
+	if !strings.Contains(err.Error(), "XYZ1234567") && !strings.Contains(err.Error(), "ABC9876543") {
+		t.Fatalf("error message should name the conflicting team values: %v", err)
+	}
+}
+
+func TestLoad_AllowsNonstandardWhenOptedIn(t *testing.T) {
+	// Escape hatch: allow_nonstandard: true → skip the team-consistency check.
+	dir := t.TempDir()
+	global := filepath.Join(dir, "global.yaml")
+	writeYAML(t, global, `
+version: 1
+team: XYZ1234567
+keychain:
+  name: my-totally-custom-keychain-name
+  allow_nonstandard: true
+`)
+	cfg, err := config.Load(config.LoadOptions{
+		GlobalPath:  global,
+		ProjectPath: filepath.Join(dir, "no-project.yaml"),
+	})
+	if err != nil {
+		t.Fatalf("allow_nonstandard: true should let any keychain.name pass: %v", err)
+	}
+	if cfg.Keychain.Name != "my-totally-custom-keychain-name" {
+		t.Fatalf("Keychain.Name = %q, want my-totally-custom-keychain-name", cfg.Keychain.Name)
+	}
+}
+
+func TestLoad_AcceptsValidKeychainName(t *testing.T) {
+	// Sanity check: the strict validator must NOT reject a well-formed
+	// canonical name whose team segment matches.
+	dir := t.TempDir()
+	global := filepath.Join(dir, "global.yaml")
+	writeYAML(t, global, `
+version: 1
+team: XYZ1234567
+keychain:
+  name: macforge-XYZ1234567-signing
+  unlock: env:MACFORGE_KEYCHAIN_PASSWORD
+`)
+	cfg, err := config.Load(config.LoadOptions{
+		GlobalPath:  global,
+		ProjectPath: filepath.Join(dir, "no-project.yaml"),
+	})
+	if err != nil {
+		t.Fatalf("canonical, matching keychain.name must be accepted: %v", err)
+	}
+	if cfg.Team != "XYZ1234567" || cfg.Keychain.Name != "macforge-XYZ1234567-signing" {
+		t.Fatalf("config not preserved: team=%q name=%q", cfg.Team, cfg.Keychain.Name)
 	}
 }
 
