@@ -55,6 +55,17 @@ Exit code is non-zero if any check is red.`,
 			}
 
 			result, runErr := runConfigValidate(cmd, rt)
+			// When there's a failure, the renderer's Failure path prints only
+			// the error envelope — not the per-check list the operator needs
+			// to know which line went red. In human mode, print the checklist
+			// directly to the renderer's stdout before emitting the failure
+			// summary. (In JSON mode, the failure envelope is the contract;
+			// mixing human lines would corrupt the JSON.)
+			if runErr != nil && resolveOutputMode() != "json" {
+				for _, line := range result.HumanLines() {
+					fmt.Fprintln(stdoutForRenderer, line)
+				}
+			}
 			return rt.emit(result, runErr)
 		},
 	}

@@ -50,14 +50,23 @@ func TestConfigValidate_FailsOnMissingTeam(t *testing.T) {
 
 	root := newRootCmd()
 	root.SetArgs([]string{"apple", "config", "validate"})
-	if err := root.Execute(); err == nil {
+	err := root.Execute()
+	if err == nil {
 		t.Fatal("expected non-zero exit when team is missing, got nil")
+	}
+	if !strings.Contains(err.Error(), "team") {
+		t.Fatalf("error should mention 'team' field; got: %v", err)
 	}
 }
 
 // TestConfigValidate_FailsOnTeamMismatch reproduces the #13 bug at the
-// verb level: a stale team segment in keychain.name produces a red check
-// and a non-zero exit.
+// verb level: a stale team segment in keychain.name produces a Load
+// failure (MF-CONFIG-001) with a message naming both teams, which the
+// verb surfaces via rt.emit.
+//
+// The assertion checks the error message contains BOTH team strings;
+// that is selective for the team-mismatch validator and would not be
+// satisfied by an incidental Load failure (missing keychain file, etc.).
 func TestConfigValidate_FailsOnTeamMismatch(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", dir)
@@ -79,21 +88,22 @@ keychain:
 
 	root := newRootCmd()
 	root.SetArgs([]string{"apple", "config", "validate"})
-	if err := root.Execute(); err == nil {
+	err := root.Execute()
+	if err == nil {
 		t.Fatal("expected non-zero exit when keychain.name disagrees with team, got nil")
+	}
+	msg := err.Error()
+	if !strings.Contains(msg, "XYZ1234567") || !strings.Contains(msg, "ABC9876543") {
+		t.Fatalf("error should name both conflicting team values; got: %v", msg)
 	}
 }
 
-// TestConfigValidate_FailsWhenUnlockEnvUnset proves the runtime check
-// fires: a valid config that references env:MACFORGE_TEST_UNSET_VAR
-// produces a non-zero exit because the env var isn't set.
-//
-// NOTE: this test reaches the runtime phase, which calls
-// security.HasKeychain. On non-darwin or CI without the security binary,
-// HasKeychain returns (false, MF-TOOL-MISSING) and the verb still exits
-// non-zero — which is what we assert on. On macOS the keychain probe may
-// succeed but the env-var probe still fails red, producing the same
-// non-zero exit. Either way the assertion holds.
+// TestConfigValidate_FailsWhenUnlockEnvUnset proves the runtime env-var
+// check fires: a valid config that references env:MACFORGE_TEST_UNSET_VAR
+// produces a non-zero exit AND the rendered output mentions the unset
+// variable by name. The latter assertion is selective for the env-var
+// runtime check (a missing keychain or absent security binary would also
+// produce non-zero exit but would not emit "MACFORGE_TEST_UNSET_VAR").
 func TestConfigValidate_FailsWhenUnlockEnvUnset(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", dir)
@@ -101,8 +111,6 @@ func TestConfigValidate_FailsWhenUnlockEnvUnset(t *testing.T) {
 	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	// Deliberately reference an env var that no test has exported.
-	t.Setenv("MACFORGE_TEST_UNSET_VAR", "")
 	if err := os.Unsetenv("MACFORGE_TEST_UNSET_VAR"); err != nil {
 		t.Fatalf("Unsetenv: %v", err)
 	}
@@ -119,10 +127,20 @@ keychain:
 
 	t.Chdir(t.TempDir())
 
+	// Swap stdoutForRenderer so we can read the verb's output.
+	var stdoutBuf bytes.Buffer
+	origStdout := stdoutForRenderer
+	stdoutForRenderer = &stdoutBuf
+	t.Cleanup(func() { stdoutForRenderer = origStdout })
+
 	root := newRootCmd()
 	root.SetArgs([]string{"apple", "config", "validate"})
 	if err := root.Execute(); err == nil {
 		t.Fatal("expected non-zero exit when keychain.unlock env var is unset, got nil")
+	}
+	output := stdoutBuf.String()
+	if !strings.Contains(output, "MACFORGE_TEST_UNSET_VAR") {
+		t.Fatalf("verb output should mention the unset env var by name; got:\n%s", output)
 	}
 }
 
