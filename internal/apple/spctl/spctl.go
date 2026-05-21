@@ -16,9 +16,12 @@ import (
 type AssessType string
 
 const (
-	AssessTypeExec    AssessType = "execute"  // .app
-	AssessTypeInstall AssessType = "install"  // .pkg
-	AssessTypeOpen    AssessType = "open"     // .dmg
+	// AssessTypeExec assesses a .app bundle (Gatekeeper "execute" policy).
+	AssessTypeExec AssessType = "execute"
+	// AssessTypeInstall assesses a .pkg installer ("install" policy).
+	AssessTypeInstall AssessType = "install"
+	// AssessTypeOpen assesses a .dmg disk image ("open" policy).
+	AssessTypeOpen AssessType = "open"
 )
 
 // Client wraps spctl via a Runner.
