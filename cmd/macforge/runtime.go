@@ -6,7 +6,6 @@ package main
 import (
 	"io"
 	"os"
-	"path/filepath"
 
 	"github.com/convergent-systems-co/macforge/internal/audit"
 	"github.com/convergent-systems-co/macforge/internal/config"
@@ -42,7 +41,7 @@ func newRuntime(command string, loadConfig bool) (*cliRuntime, error) {
 	rt.renderer = output.NewRenderer(mode, stdoutForRenderer, rt.trace, command, gflags.noColor || os.Getenv("NO_COLOR") != "")
 
 	if loadConfig {
-		cfg, err := config.Load(config.LoadOptions{ProjectPath: gflags.configPath})
+		cfg, err := config.Load(config.LoadOptions{GlobalPath: gflags.configPath})
 		if err != nil {
 			return rt, err
 		}
@@ -97,8 +96,9 @@ func asError(err error, target **mferrors.Error) bool {
 // stdoutForRenderer is a hook for tests to swap stdout.
 var stdoutForRenderer io.Writer = os.Stdout
 
-// macforgeYAMLPath returns the path init should write to.
+// macforgeYAMLPath returns the path init should write to: the global config
+// at ${XDG_CONFIG_HOME:-$HOME/.config}/macforge/macforge.yaml. Per ADR-0015,
+// init writes ONLY the global file; project-local overrides are user-authored.
 func macforgeYAMLPath() string {
-	cwd, _ := os.Getwd()
-	return filepath.Join(cwd, "macforge.yaml")
+	return config.ConfigPath()
 }
