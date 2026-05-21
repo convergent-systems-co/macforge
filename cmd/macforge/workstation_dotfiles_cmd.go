@@ -4,6 +4,7 @@
 package main
 
 import (
+	"errors"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -29,6 +30,14 @@ func newWorkstationDotfilesApplyCmd() *cobra.Command {
 			repoPath, _, err := rt.ResolveRepoPath()
 			if err != nil {
 				return err
+			}
+			// Guard the embed-fallback case: an empty repoPath means no
+			// workstation repo is configured. Without this check,
+			// dotfiles.Apply would call filepath.Join("", "dotfiles") which
+			// resolves to "dotfiles" relative to process CWD — potentially
+			// copying from an unintended source directory or silently no-oping.
+			if repoPath == "" {
+				return errors.New("dotfiles apply: no repo configured; clone the workstation repo and set --workstation-repo or MACHEIM_REPO first")
 			}
 			homePath, err := os.UserHomeDir()
 			if err != nil {

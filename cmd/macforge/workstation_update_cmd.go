@@ -33,12 +33,18 @@ func newWorkstationUpdateLocalToRemoteCmd() *cobra.Command {
 			case "brew":
 				return brew.UpdateLocalToRemote(rt)
 			case "dotfiles":
+				// Result discarded: dotfiles.UpdateLocalToRemote renders output internally
+				// via renderReverseDrift/logReverse. Hooking up a cmd-layer render path
+				// here would double-print. See internal/workstation/dotfiles/local_to_remote.go.
 				_, err := dotfiles.UpdateLocalToRemote(rt)
 				return err
 			case "all", "":
 				if err := brew.UpdateLocalToRemote(rt); err != nil {
 					return err
 				}
+				// Result discarded: dotfiles.UpdateLocalToRemote renders output internally
+				// via renderReverseDrift/logReverse. Hooking up a cmd-layer render path
+				// here would double-print. See internal/workstation/dotfiles/local_to_remote.go.
 				_, err := dotfiles.UpdateLocalToRemote(rt)
 				return err
 			default:
@@ -69,7 +75,7 @@ func newWorkstationUpdateRemoteToLocalCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringVar(&module, "module", "all", "brew | all (dotfiles remote-to-local lands in a future commit)")
-	cmd.Flags().BoolVar(&prune, "prune", false, "remove formulae no longer in Brewfile (brew bundle --cleanup)")
+	cmd.Flags().BoolVar(&prune, "prune", false, "DESTRUCTIVE: uninstalls every formula/cask not in Brewfile (brew bundle --cleanup); use --dry-run first")
 	cmd.Flags().BoolVar(&noPull, "no-pull", false, "skip git pull before applying")
 	return cmd
 }
