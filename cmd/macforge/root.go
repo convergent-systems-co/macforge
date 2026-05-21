@@ -47,6 +47,7 @@ and publishing for macOS software distributed outside the App Store.`,
 	// and docs/adr/0018-peer-subtree-named-workstation.md (peer-name decision).
 	root.AddCommand(
 		newAppleCmd(),
+		newWorkstationCmd(),
 		newVersionCmd(),
 	)
 

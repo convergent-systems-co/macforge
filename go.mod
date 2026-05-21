@@ -6,7 +6,6 @@ require (
 	github.com/oklog/ulid/v2 v2.1.1
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
-	github.com/urfave/cli/v3 v3.9.0
 	go.yaml.in/yaml/v3 v3.0.4
 	golang.org/x/term v0.10.0
 	software.sslmate.com/src/go-pkcs12 v0.7.1

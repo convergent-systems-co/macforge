@@ -11,7 +11,6 @@ import (
 	"runtime"
 
 	"github.com/convergent-systems-co/macforge/internal/workstation/config"
-	"github.com/urfave/cli/v3"
 )
 
 // Result is the structured outcome of a single check.
@@ -68,8 +67,9 @@ func DefaultChecks() []Check {
 }
 
 // Run executes every check in order, renders each row, prints a summary,
-// and returns nil on all-pass or a cli.ExitCoder with exit code 1 when
-// any check fails.
+// and returns nil on all-pass or ErrChecksFailed when any check fails.
+// Callers (cobra RunE) propagate the sentinel; cobra renders it and sets
+// exit code 1.
 func Run(rt *config.Runtime, w io.Writer) error {
 	r := newRender(rt, w)
 	failed := 0
@@ -82,7 +82,16 @@ func Run(rt *config.Runtime, w io.Writer) error {
 	}
 	r.summary(failed)
 	if failed > 0 {
-		return cli.Exit("", 1)
+		return ErrChecksFailed
 	}
 	return nil
 }
+
+// ErrChecksFailed is returned by Run when one or more doctor checks fail.
+// Callers should treat this as the signal to exit 1; the per-check output
+// has already been rendered to the writer.
+var ErrChecksFailed = errChecksFailed{}
+
+type errChecksFailed struct{}
+
+func (errChecksFailed) Error() string { return "doctor: one or more checks failed" }
