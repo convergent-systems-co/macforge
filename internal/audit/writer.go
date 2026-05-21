@@ -38,6 +38,10 @@ func (w *Writer) Write(ev Event) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
+	if ev.Chronon.IsZero() {
+		ev.Chronon = time.Now().UTC()
+	}
+
 	day := ev.Chronon.UTC().Format("2006-01-02")
 	if day != w.day || w.f == nil {
 		if w.f != nil {
@@ -55,10 +59,6 @@ func (w *Writer) Write(ev Event) error {
 	if w.redactor != nil {
 		ev.ProbePayload = w.redactor.Apply(ev.ProbePayload)
 		ev.Note = w.redactor.Apply(ev.Note)
-	}
-
-	if ev.Chronon.IsZero() {
-		ev.Chronon = time.Now().UTC()
 	}
 
 	b, err := json.Marshal(ev)

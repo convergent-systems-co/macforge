@@ -88,6 +88,29 @@ func TestWriter_DailyRotation(t *testing.T) {
 	}
 }
 
+func TestWriter_ZeroTimeChrononUsesToday(t *testing.T) {
+	dir := t.TempDir()
+	w, err := NewWriter(dir, NewRedactor(nil))
+	if err != nil {
+		t.Fatalf("NewWriter: %v", err)
+	}
+	defer w.Close()
+
+	// Chronon is the zero value.
+	if err := w.Write(Event{Trace: "T1", Actor: ActorMacforge, Kind: KindSignal}); err != nil {
+		t.Fatalf("Write: %v", err)
+	}
+
+	files, _ := filepath.Glob(filepath.Join(dir, "*.jsonl"))
+	if len(files) != 1 {
+		t.Fatalf("expected 1 file, got %d: %v", len(files), files)
+	}
+	today := time.Now().UTC().Format("2006-01-02")
+	if !strings.HasSuffix(files[0], today+".jsonl") {
+		t.Fatalf("file %s did not match today's date %s", files[0], today)
+	}
+}
+
 func TestNewTraceID_Format(t *testing.T) {
 	id := NewTraceID()
 	if len(id) != 26 {
