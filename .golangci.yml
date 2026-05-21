@@ -18,13 +18,13 @@ linters:
   settings:
     revive:
       rules:
-        # `exported` (missing doc comments on exported identifiers) is a
-        # legitimate finding but produces ~30+ hits across the v0.1 codebase
-        # because the rapid iteration didn't backfill godocs for every
-        # exported const/type/func. Disabled here so unrelated PRs aren't
-        # blocked; tracked as a follow-up cleanup.
+        # `exported` enforces godoc comments on all exported identifiers.
+        # `disableStutteringCheck` suppresses the "func config.NewConfig
+        # stutters" finding — these constructors are intentionally namespaced
+        # by package to keep the audit-code-prefix obvious at the call site.
         - name: exported
-          disabled: true
+          arguments:
+            - disableStutteringCheck
   exclusions:
     rules:
       - path: _test\.go

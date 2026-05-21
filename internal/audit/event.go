@@ -10,21 +10,30 @@ import "time"
 type Kind string
 
 const (
+	// KindInvocationAttempt is emitted just before an Apple tool is spawned.
 	KindInvocationAttempt Kind = "invocation-attempt"
-	KindInvocationResult  Kind = "invocation-result"
-	KindSignal            Kind = "signal"
-	KindDecision          Kind = "decision"
-	KindError             Kind = "error"
+	// KindInvocationResult is emitted after the Apple tool returns; carries exit code + duration.
+	KindInvocationResult Kind = "invocation-result"
+	// KindSignal is a freeform notable event (start, end, milestone).
+	KindSignal Kind = "signal"
+	// KindDecision records a fork in MacForge's logic (e.g., chose identity X over Y).
+	KindDecision Kind = "decision"
+	// KindError records a structured failure (carries an MF-* code).
+	KindError Kind = "error"
 )
 
 // Actor identifies who or what generated the event.
 type Actor string
 
 const (
+	// ActorMacforge is MacForge itself (the default for runtime-generated events).
 	ActorMacforge Actor = "macforge"
-	ActorUser     Actor = "user"
-	ActorTool     Actor = "tool"
-	ActorSystem   Actor = "system"
+	// ActorUser is the human operator (events triggered by explicit invocation).
+	ActorUser Actor = "user"
+	// ActorTool is an external Apple/system CLI MacForge shelled out to.
+	ActorTool Actor = "tool"
+	// ActorSystem is the host OS or kernel.
+	ActorSystem Actor = "system"
 )
 
 // Event is a single audit-log entry. Marshals to one JSONL line.

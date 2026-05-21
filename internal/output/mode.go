@@ -7,7 +7,9 @@ package output
 type Mode int
 
 const (
+	// ModeHuman renders results in a colorized, terminal-friendly format.
 	ModeHuman Mode = iota
+	// ModeJSON renders results as one stable, schema-versioned JSON envelope per command.
 	ModeJSON
 )
 
