@@ -133,8 +133,11 @@ keychain:
 	stdoutForRenderer = &stdoutBuf
 	t.Cleanup(func() { stdoutForRenderer = origStdout })
 
+	// Force human output mode regardless of CI default — the env-var line
+	// goes into HumanLines, not into the failure envelope. (Under
+	// GITHUB_ACTIONS the default is json, which would mask the assertion.)
 	root := newRootCmd()
-	root.SetArgs([]string{"apple", "config", "validate"})
+	root.SetArgs([]string{"--output", "human", "apple", "config", "validate"})
 	if err := root.Execute(); err == nil {
 		t.Fatal("expected non-zero exit when keychain.unlock env var is unset, got nil")
 	}

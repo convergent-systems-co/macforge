@@ -63,7 +63,7 @@ Exit code is non-zero if any check is red.`,
 			// mixing human lines would corrupt the JSON.)
 			if runErr != nil && resolveOutputMode() != "json" {
 				for _, line := range result.HumanLines() {
-					fmt.Fprintln(stdoutForRenderer, line)
+					_, _ = fmt.Fprintln(stdoutForRenderer, line)
 				}
 			}
 			return rt.emit(result, runErr)
