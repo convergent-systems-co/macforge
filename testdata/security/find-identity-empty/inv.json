@@ -1,0 +1,1 @@
+{"tool":"security","args":["find-identity","-p","codesigning","-v","macforge-empty-signing"]}
