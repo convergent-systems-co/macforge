@@ -23,6 +23,7 @@ once that project merges in.`,
 	}
 	cmd.AddCommand(
 		newInitCmd(),
+		newConfigCmd(),
 		newIdentityCmd(),
 		newKeychainCmd(),
 		newSignCmd(),
