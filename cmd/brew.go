@@ -21,9 +21,11 @@ func brewCommand(rt *config.Runtime) *cli.Command {
 				},
 			},
 			{
-				Name:   "bundle",
-				Usage:  "Apply the repo Brewfile",
-				Action: notImplemented("brew bundle", 13),
+				Name:  "bundle",
+				Usage: "Apply the repo Brewfile",
+				Action: func(_ context.Context, _ *cli.Command) error {
+					return brew.Apply(rt)
+				},
 			},
 		},
 	}
