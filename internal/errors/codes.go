@@ -28,7 +28,16 @@ const (
 	CodeSignHardenedRuntimeRequired = "MF-SIGN-003"
 
 	// Packaging
-	CodePackageUnsupportedFormat = "MF-PACKAGE-001"
+	// CodePackageInputNotFound — input path does not exist or is inaccessible.
+	CodePackageInputNotFound = "MF-PACKAGE-001"
+	// CodePackageInputNotAppBundle — input exists but is not a .app bundle.
+	CodePackageInputNotAppBundle = "MF-PACKAGE-002"
+	// CodePackageInputNotSigned — input fails codesign --verify before packaging.
+	CodePackageInputNotSigned = "MF-PACKAGE-003"
+	// CodePackageOutputExists — output path is occupied and --force was not set.
+	CodePackageOutputExists = "MF-PACKAGE-004"
+	// CodePackageDittoFailed — ditto subprocess exited non-zero during archiving.
+	CodePackageDittoFailed = "MF-PACKAGE-005"
 
 	// Notarization
 	CodeNotarizeRejected = "MF-NOTARIZE-001"
@@ -70,7 +79,8 @@ func AllCodes() []string {
 		CodeIdentityNotFound, CodeIdentityExpired, CodeIdentityImportFail,
 		CodeKeychainLocked, CodeKeychainMissing, CodeKeychainExists, CodeKeychainNonStandardName,
 		CodeSignVerificationFail, CodeSignNoIdentity, CodeSignHardenedRuntimeRequired,
-		CodePackageUnsupportedFormat,
+		CodePackageInputNotFound, CodePackageInputNotAppBundle, CodePackageInputNotSigned,
+		CodePackageOutputExists, CodePackageDittoFailed,
 		CodeNotarizeRejected, CodeNotarizeTimeout,
 		CodeVerifyCodesignFail, CodeVerifySpctlFail,
 		CodePublishUploadFail,
